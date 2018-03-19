@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<th:block th:fregment="meta">
     <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Chiricker</title>
+</th:block>
+
+<th:block th:fragment="style">
+    <link rel="stylesheet" type="text/css" href="/assets/styles/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/styles/style.css">
+</th:block>
+
+<th:block th:fragment="scripts">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.3/js/tether.min.js"></script>
+    <script src="/assets/scripts/bootstrap.min.js"></script>
+</th:block>

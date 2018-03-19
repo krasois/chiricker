@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <th:block th:replace="fragments/head :: meta"></th:block>
+    <th:block th:replace="fragments/head :: style"></th:block>
+    <th:block th:replace="fragments/head :: script"></th:block>
+    <!--<link rel="stylesheet" type="text/css" href="../../static/assets/styles/bootstrap.min.css">-->
 </head>
 <body>
+    <div class="container-fluid">
+        <header th:include="fragments/navbar :: navbar"></header>
 
+        <div class="container">
+
+        </div>
+    </div>
 </body>
 </html>

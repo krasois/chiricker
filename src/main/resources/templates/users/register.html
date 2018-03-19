@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <th:block th:replace="fragments/head :: meta"></th:block>
     <th:block th:replace="fragments/head :: style"></th:block>
@@ -9,35 +10,82 @@
 <div class="container-fluid">
     <header th:include="fragments/navbar :: navbar"></header>
 
-    <div class="container mt-2">
-        <form th:method="POST" th:action="@{/register}">
-            <div class="group-group">
+    <div class="container">
+        <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert" th:if="${fatalError}">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div th:text="${fatalError}"></div>
+        </div>
+
+        <p class="h2 mt-3">Register to Chiricker</p>
+
+        <form class="mt-3" th:method="POST" th:action="@{/register}" th:object="${user}">
+            <div class="group-group mb-2" th:classappend="${#fields.hasErrors('name')} ? 'has-danger'">
                 <label for="name">Name</label>
-                <input class="form-control" type="text" id="name" name="name" placeholder="Name..."/>
+                <input class="form-control" type="text" id="name" name="name" placeholder="Name..." th:field="*{name}"/>
+
+                <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('name')}">
+                    <div>
+                        <small class="form-control-feedback" th:text="${error}"></small>
+                    </div>
+                </th:block>
             </div>
 
-            <div class="group-group">
+            <div class="group-group mb-2" th:classappend="${#fields.hasErrors('handle')} ? 'has-danger'">
                 <label for="handle">Handle</label>
-                <input class="form-control" type="text" id="handle" name="handle" placeholder="@example_handle"/>
+                <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                    <div class="input-group-addon">@</div>
+                    <input type="text" class="form-control" id="handle" placeholder="handle" th:field="*{handle}"/>
+                </div>
+
+                <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('handle')}">
+                    <div>
+                        <small class="form-control-feedback" th:text="${error}"></small>
+                    </div>
+                </th:block>
             </div>
 
-            <div class="group-group">
+            <div class="group-group mb-2" th:classappend="${#fields.hasErrors('password')} ? 'has-danger'">
                 <label for="password">Password</label>
                 <input class="form-control" type="password" id="password" name="password"/>
+
+                <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('password')}">
+                    <div>
+                        <small class="form-control-feedback" th:text="${error}"></small>
+                    </div>
+                </th:block>
             </div>
 
-            <div class="group-group">
+            <div class="group-group mb-2" th:classappend="${#fields.hasErrors('global')} ? 'has-danger'">
                 <label for="confirmPassword">Confirm Password</label>
                 <input class="form-control" type="password" id="confirmPassword" name="confirmPassword"/>
+
+                <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('global')}">
+                    <div>
+                        <small class="form-control-feedback" th:text="${error}"></small>
+                    </div>
+                </th:block>
             </div>
 
-            <div class="group-group">
+            <div class="group-group mb-2" th:classappend="${#fields.hasErrors('email')} ? 'has-danger'">
                 <label for="email">Email</label>
-                <input class="form-control" type="email" id="email" name="email" placeholder="example@email.com"/>
+                <input class="form-control" type="email" id="email" name="email" placeholder="example@email.com"
+                       th:field="*{email}"/>
+
+                <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('email')}">
+                    <div>
+                        <small class="form-control-feedback" th:text="${error}"></small>
+                    </div>
+                </th:block>
             </div>
 
-            <button class="btn btn-info" type="submit" value="Register"></button>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <button class="btn btn-info mt-2" type="submit" th:text="Register"></button>
         </form>
+
+        <p class="mt-3">Already have an account? <a href="/login">Log in</a></p>
     </div>
 </div>
 </body>

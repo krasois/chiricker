@@ -1,10 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+<th:block th:fragment="navbar">
+    <nav class="navbar navbar-toggleable-sm navbar-light fixed-top bg-faded">
+
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <a class="nav-link navbar-brand hidden-md-up mr-auto" th:href="@{/}">Chiricker</a>
+
+        <div class="container">
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="nav navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Home</a>
+                    </li>
+                </ul>
+
+                <ul class="hidden-sm-down nav navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a th:href="@{/}">
+                            <img class="img-fluid rounded-circle" src="/assets/images/logo.png"
+                                 alt="Chiricker logo"/>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav ml-auto">
+                    <li sec:authorize="!isAuthenticated()" class="nav-item mr-sm-2">
+                        <a class="nav-link" th:href="@{/login}">Login</a>
+                    </li>
+                    <li sec:authorize="!isAuthenticated()" class="nav-item mr-sm-2">
+                        <a class="nav-link" th:href="@{/register}">Register</a>
+                    </li>
+
+                    <li sec:authorize="isAuthenticated()" class="nav-item mr-sm-2">
+                        <form th:method="POST" th:action="@{/logout}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn btn-outline-success hidden-sm-down"
+                                    th:href="@{/logout}"
+                                    th:text="Logout"></button>
+                            <button type="submit" class="nav-item nav-link btn btn-link hidden-md-up"
+                                    th:href="@{/logout}" th:text="Logout"></button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</th:block>
