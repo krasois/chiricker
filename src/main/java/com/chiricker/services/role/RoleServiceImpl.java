@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoleServiceImpl implements RoleService {
 
-    private static final String USER_ROLE_NAME = "USER";
+    private static final String USER_ROLE_AUTHORITY = "USER";
 
     private final RoleRepository roleRepository;
 
@@ -19,6 +19,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getUserRole() {
-        return this.roleRepository.findByName(USER_ROLE_NAME);
+        return this.roleRepository.findByAuthority(USER_ROLE_AUTHORITY);
     }
 }

@@ -1,8 +1,5 @@
 package com.chiricker.models.binding;
 
-import com.chiricker.validation.annotations.HandlePasswordMatch;
-
-@HandlePasswordMatch
 public class UserLoginBindingModel {
 
     private String handle;

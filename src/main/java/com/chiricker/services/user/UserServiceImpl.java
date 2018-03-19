@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Component(value = "userService")
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -48,6 +50,10 @@ public class UserServiceImpl implements UserService {
                 d.setName(s.getName());
                 d.setHandle(s.getHandle());
                 d.setEmail(s.getEmail());
+                d.setAccountNonExpired(true);
+                d.setAccountNonLocked(true);
+                d.setCredentialsNonExpired(true);
+                d.setEnabled(true);
                 d.setPassword(passwordEncoder.encode(s.getPassword()));
 
                 Role userRole = roleService.getUserRole();
