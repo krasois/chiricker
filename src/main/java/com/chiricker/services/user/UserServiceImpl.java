@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleService roleService;
@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                     add(userRole);
                 }};
 
-                d.setRoles(roles);
+                d.setAuthorities(roles);
 
                 return d;
             }
@@ -88,11 +88,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         User user = this.userRepository.findByHandle(handle);
         if (user == null) throw new UsernameNotFoundException("No user with handle: " + handle);
 
-        Set<GrantedAuthority> roles = user.getRoles()
-                .stream()
-                .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getName()))
-                .collect(Collectors.toSet());
-
-        return new org.springframework.security.core.userdetails.User(user.getHandle(), user.getPassword(), roles);
+        return user;
     }
 }
