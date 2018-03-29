@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: meta"></th:block>
+    <th:block th:replace="fragments/head :: style"></th:block>
+    <th:block th:replace="fragments/head :: script"></th:block>
+</head>
+<body>
+<div class="container-fluid">
+    <header th:include="fragments/navbar :: navbar"></header>
+
+    <main>
+        <div class="jumbotron">
+            <div class="col-sm-7 offset-sm-2">
+                <th:block th:replace="${view}"></th:block>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

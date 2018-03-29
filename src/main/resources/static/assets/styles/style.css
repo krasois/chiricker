@@ -1,3 +1,29 @@
 body {
     padding-top: 65px;
 }
+
+a[href], input[type='submit'], input[type='image'], label[for], select, button, .pointer {
+    cursor: pointer;
+}
+
+.nav-image {
+    max-width: 45px;
+}
+
+.card-image {
+    max-width: 70px;
+}
+
+.dropdown-item-name:hover {
+    background-color: transparent;
+}
+
+.dropdown-item.nav-link-green:hover {
+    background-color: #5cb85c;
+}
+
+@media (min-width: 1px) {
+    nav.navbar {
+        background: white;
+    }
+}

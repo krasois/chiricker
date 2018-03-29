@@ -1,0 +1,56 @@
+<div class="">
+
+    <div class="row">
+
+        <div th:replace="fragments//user/user-card :: user-card"></div>
+
+        <div class="col col-md-8">
+            <div class="card border-light mb-3 w-100" style="width: 18rem;">
+                <div class="card-body">
+                    <form class="form" th:method="POST" th:action="@{/settings}" th:object="${user}">
+                        <legend>Account Settings</legend>
+                        <hr class="display-2"/>
+
+                        <div th:replace="fragments//user/register-form-fields :: register-fields"></div>
+
+                        <legend class="mt-4">Profile Settings</legend>
+                        <hr class="display-2"/>
+
+                        <div class="group-group mb-2" th:classappend="${#fields.hasErrors('name')} ? 'has-danger'">
+                            <label for="biography">Biography</label>
+                            <textarea class="form-control" type="text" id="biography" name="biography"
+                                      placeholder="Your story..." th:field="*{biography}"></textarea>
+
+                            <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('biography')}">
+                                <div>
+                                    <small class="form-control-feedback" th:text="${error}"></small>
+                                </div>
+                            </th:block>
+                        </div>
+
+                        <div class="group-group mb-2"
+                             th:classappend="${#fields.hasErrors('websiteUrl')} ? 'has-danger'">
+                            <label for="websiteUrl">Website</label>
+                            <input class="form-control" type="text" id="websiteUrl" name="websiteUrl"
+                                   th:field="*{websiteUrl}"/>
+
+                            <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('websiteUrl')}">
+                                <div>
+                                    <small class="form-control-feedback" th:text="${error}"></small>
+                                </div>
+                            </th:block>
+                        </div>
+
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <button class="btn btn-success mt-2" type="submit" th:text="|Save Changes|"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script> $("#userCard").ready(() => {
+    getUserCard();
+}); </script>
