@@ -4,7 +4,10 @@ import com.chiricker.controllers.BaseController;
 import com.chiricker.users.models.binding.UserLoginBindingModel;
 import com.chiricker.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.users.models.binding.UserEditBindingModel;
+import com.chiricker.users.services.role.RoleService;
+import com.chiricker.users.services.role.RoleServiceImpl;
 import com.chiricker.users.services.user.UserService;
+import com.dropbox.core.v2.DbxClientV2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -51,9 +54,9 @@ public class UserController extends BaseController {
         return this.view("users/settings", "user", userDetails);
     }
 
-    @PostMapping("/settings")
+    @PostMapping(value = "/settings")
     public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) {
-        if (result.hasErrors()) return this.view("users/settings");
+        if (result.hasErrors()) { return this.view("users/settings"); }
         this.userService.edit(user, principal.getName());
         return this.redirect("/" + principal.getName());
     }

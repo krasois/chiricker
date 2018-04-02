@@ -9,35 +9,51 @@ import com.chiricker.users.models.view.UserCardViewModel;
 import com.chiricker.users.models.view.UserNavbarViewModel;
 import com.chiricker.users.repositories.UserRepository;
 import com.chiricker.users.services.role.RoleService;
+import com.dropbox.core.DbxException;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.sharing.RequestedVisibility;
+import com.dropbox.core.v2.sharing.SharedLinkMetadata;
+import com.dropbox.core.v2.sharing.SharedLinkSettings;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Component(value = "userService")
 public class UserServiceImpl implements UserService {
+
+    private static final String DEFAULT_PROFILE_PICTURE_URL = "https://dl.dropboxusercontent.com/s/y7i72l1yblmfydj/defaultProfileImage.png";
 
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final ModelMapper mapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
+    private final DbxClientV2 client;
+
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, BCryptPasswordEncoder passwordEncoder, DbxClientV2 client) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
+        this.client = client;
         this.initCustomMappings();
     }
 
@@ -57,8 +73,9 @@ public class UserServiceImpl implements UserService {
                 d.setEnabled(true);
                 d.setPassword(passwordEncoder.encode(s.getPassword()));
                 d.setRegisteredOn(new Date());
+
                 Profile profile = new Profile() {{
-                    setProfilePicUrl("https://upload.wikimedia.org/wikipedia/commons/7/70/User_icon_BLACK-01.png");
+                    setProfilePicUrl(DEFAULT_PROFILE_PICTURE_URL);
                 }};
                 d.setProfile(profile);
 
@@ -66,7 +83,6 @@ public class UserServiceImpl implements UserService {
                 Set<Role> roles = new HashSet<>() {{
                     add(userRole);
                 }};
-
                 d.setAuthorities(roles);
 
                 return d;
@@ -128,6 +144,45 @@ public class UserServiceImpl implements UserService {
         this.mapper.addConverter(userCard);
     }
 
+    private void handlePictureFile(User user, MultipartFile profilePicture) {
+        if (profilePicture != null) {
+            String oldProfilePic = user.getProfile().getProfilePicUrl();
+
+            try (InputStream in = profilePicture.getInputStream()) {
+
+                String fileName = profilePicture.getOriginalFilename();
+                String fileExtension = fileName.substring(fileName.lastIndexOf("."));
+                String newFileRandomName = "/" + UUID.randomUUID().toString() + fileExtension;
+
+                FileMetadata fileMetadata = this.client.files()
+                        .uploadBuilder(newFileRandomName)
+                        .uploadAndFinish(in);
+
+                SharedLinkMetadata slm = this.client.sharing()
+                        .createSharedLinkWithSettings(newFileRandomName,
+                                SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
+
+                String imageShareUrl = slm.getUrl()
+                        .replace("www.dropbox.com", "dl.dropboxusercontent.com")
+                        .replace("?dl=0", "");
+
+                user.getProfile().setProfilePicUrl(imageShareUrl);
+            } catch (IOException | DbxException e) {
+                e.printStackTrace();
+            }
+
+
+            if (!oldProfilePic.equals(DEFAULT_PROFILE_PICTURE_URL)) {
+                String filePath = oldProfilePic.substring(oldProfilePic.lastIndexOf("/"));
+                try {
+                    this.client.files().deleteV2(filePath);
+                } catch (DbxException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     @Override
     public boolean handleExists(String handle) {
         return this.userRepository.existsByHandleIs(handle);
@@ -136,16 +191,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(UserRegisterBindingModel model) {
         User user = this.mapper.map(model, User.class);
-        this.userRepository.saveAndFlush(user);
-        return user;
+        return this.userRepository.saveAndFlush(user);
     }
 
     @Override
     public User edit(UserEditBindingModel model, String handle) {
         User user = this.userRepository.findByHandle(handle);
         this.mapper.map(model, user);
-        this.userRepository.saveAndFlush(user);
-        return user;
+        this.handlePictureFile(user, model.getProfilePicture());
+        return this.userRepository.saveAndFlush(user);
     }
 
     @Override

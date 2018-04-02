@@ -1,0 +1,31 @@
+<a class="nav-link" href="#" id="navbarDropdown" role="button"
+   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <img class="nav-image img-fluid rounded-circle" alt="Profile" id="profileImg"/>
+</a>
+
+<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+    <a readonly="readonly" class="dropdown-item text-center  dropdown-item-name" id="profileLink">
+        <div class="dropdown-item text-center  dropdown-item-name" id="profileName"></div>
+        <div class="dropdown-item text-center text-secondary dropdown-item-name" id="profileHandle"></div>
+    </a>
+
+    <div class="dropdown-divider"></div>
+
+    <a class="nav-item nav-link dropdown-item text-center nav-link-green" th:href="@{/settings}"
+       th:text="Settings"></a>
+
+    <div class="dropdown-divider"></div>
+
+    <form th:method="POST" th:action="@{/logout}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit"
+                class="nav-item nav-link dropdown-item text-center nav-link-green"
+                th:href="@{/logout}" th:text="Logout"></button>
+    </form>
+</div>
+
+<script>
+    $("#nav-profile").ready(() => {
+        getUserProfileInfo();
+    });
+</script>

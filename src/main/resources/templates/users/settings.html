@@ -7,7 +7,7 @@
         <div class="col col-md-8">
             <div class="card border-light mb-3 w-100" style="width: 18rem;">
                 <div class="card-body">
-                    <form class="form" th:method="POST" th:action="@{/settings}" th:object="${user}">
+                    <form class="form" th:method="POST" enctype="multipart/form-data" onsubmit="return isFileValid()" th:action="@{/settings}" th:object="${user}">
                         <legend>Account Settings</legend>
                         <hr class="display-2"/>
 
@@ -41,9 +41,20 @@
                             </th:block>
                         </div>
 
+                        <div class="group-group mb-2" id="picture">
+                            <label for="profilePicture">Profile Picture (*.jpeg, *.png, *.bmp)</label>
+                            <input class="form-control-file" type="file" accept="image/jpeg,image/png,image/bmp" id="profilePicture" name="profilePicture"/>
+
+                            <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('profilePicture')}">
+                                <div>
+                                    <small class="text-danger" th:text="${error}"></small>
+                                </div>
+                            </th:block>
+                        </div>
+
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-                        <button class="btn btn-success mt-2" type="submit" th:text="|Save Changes|"></button>
+                        <button class="btn btn-success mt-2" type="submit">Save Changes</button>
                     </form>
                 </div>
             </div>
@@ -51,6 +62,48 @@
     </div>
 </div>
 
-<script> $("#userCard").ready(() => {
-    getUserCard();
-}); </script>
+<script>
+    $("#userCard").ready(() => {
+        getUserCard();
+    });
+
+function isFileValid() {
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/bmp'];
+
+    let file = $("#profilePicture")[0].files[0];
+    let fileSize = file.size;
+    let isFileTypeSupported = $.inArray(file.type, supportedTypes);
+
+    let errorDiv = $("#picError");
+    if (fileSize < 1000000 && !isFileTypeSupported) {
+        console.log('true');
+        errorDiv.remove();
+        return true;
+    }
+
+    let pictureDiv = $("#picture");
+    if (errorDiv) {
+        errorDiv = $("<div id=\"picError\">");
+        pictureDiv.append(errorDiv);
+    }
+
+    if (fileSize > 1000000) {
+        let sizeError = $("#sizeError");
+        if (sizeError) {
+            errorDiv.append("<small class=\"text-danger\" id=\"sizeError\">");
+        }
+        sizeError.text("File size cannot be more than 1MB.");
+    }
+
+    if (isFileTypeSupported) {
+        let typeError = $("#typeError");
+        if (typeError) {
+            errorDiv.append("<small class=\"text-danger\" id=\"typeError\">");
+        }
+        typeError.text("File type has to be jpg, jpeg, png or bmp.");
+    }
+
+    return false;
+}
+
+</script>

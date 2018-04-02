@@ -1,8 +1,8 @@
 package com.chiricker.users.models.binding;
 
-import com.chiricker.users.validation.annotations.HandleExists;
-import com.chiricker.users.validation.annotations.Password;
-import com.chiricker.users.validation.annotations.PasswordsMatch;
+import com.chiricker.users.validation.MIMEType;
+import com.chiricker.users.validation.annotations.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -34,6 +34,10 @@ public class UserEditBindingModel {
     private String biography;
 
     private String websiteUrl;
+
+    @MultipartSize
+    @MultipartType(supportedTypes = {MIMEType.PNG, MIMEType.JPEG, MIMEType.BMP})
+    private MultipartFile profilePicture;
 
     public String getName() {
         return name;
@@ -89,5 +93,13 @@ public class UserEditBindingModel {
 
     public void setWebsiteUrl(String websiteUrl) {
         this.websiteUrl = websiteUrl;
+    }
+
+    public MultipartFile getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(MultipartFile profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }
