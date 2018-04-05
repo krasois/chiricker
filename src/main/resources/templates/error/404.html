@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: meta"></th:block>
+    <th:block th:replace="fragments/head :: style"></th:block>
+    <th:block th:replace="fragments/head :: script"></th:block>
+</head>
+<body>
+<div class="container-fluid">
+    <header th:include="fragments/navbar :: navbar"></header>
+
+    <main>
+        <div class="jumbotron">
+            <div class="col-sm-7 offset-sm-2">
+
+                <div class="card border-light mb-3 w-100" style="width: 18rem;">
+                    <div class="card-body text-center">
+                        <h1 class="card-title text-danger">404 Not Found</h1>
+                        <h2 class="card-title">Try the search bar below if you haven't</h2>
+
+                        <form class="form mt-4" action="/search">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input class="form-control form-control-lg" name="param"/>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-success btn-lg" type="button">Search</button>
+                                    </span>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="col-sm-7 offset-sm-2" th:include="fragments/footer"></div>
+    </footer>
+</div>
+</body>
+</html>

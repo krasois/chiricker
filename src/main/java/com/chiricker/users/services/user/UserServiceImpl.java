@@ -1,5 +1,6 @@
 package com.chiricker.users.services.user;
 
+import com.chiricker.users.exceptions.UserNotFound;
 import com.chiricker.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.users.models.entities.Profile;
 import com.chiricker.users.models.entities.Role;
@@ -195,8 +196,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User edit(UserEditBindingModel model, String handle) {
+    public User edit(UserEditBindingModel model, String handle) throws UserNotFound {
         User user = this.userRepository.findByHandle(handle);
+        if (user == null) throw new UserNotFound("User with handle " + handle + " was not found");
         this.mapper.map(model, user);
         this.handlePictureFile(user, model.getProfilePicture());
         return this.userRepository.saveAndFlush(user);

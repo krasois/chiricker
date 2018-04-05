@@ -13,7 +13,15 @@
     <main>
         <div class="jumbotron">
             <div class="col-sm-7 offset-sm-2">
-                <th:block th:replace="${view}"></th:block>
+
+                <div class="card border-light mb-3 w-100" style="width: 18rem;">
+                    <div class="card-body text-center">
+                        <h1 class="card-title text-danger">Internal Server Error!</h1>
+                        <h2 class="card-title">Something went very, very wrong</h2>
+                        <a class="btn btn-primary btn-lg" href="/">Go to Homepage</a>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>

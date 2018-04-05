@@ -1,6 +1,7 @@
 package com.chiricker.users.controllers;
 
 import com.chiricker.controllers.BaseController;
+import com.chiricker.users.exceptions.UserNotFound;
 import com.chiricker.users.models.binding.UserLoginBindingModel;
 import com.chiricker.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.users.models.binding.UserEditBindingModel;
@@ -55,7 +56,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping(value = "/settings")
-    public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) {
+    public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFound {
         if (result.hasErrors()) { return this.view("users/settings"); }
         this.userService.edit(user, principal.getName());
         return this.redirect("/" + principal.getName());

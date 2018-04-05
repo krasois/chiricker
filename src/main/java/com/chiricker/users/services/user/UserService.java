@@ -1,5 +1,6 @@
 package com.chiricker.users.services.user;
 
+import com.chiricker.users.exceptions.UserNotFound;
 import com.chiricker.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.users.models.entities.User;
 import com.chiricker.users.models.binding.UserEditBindingModel;
@@ -13,7 +14,7 @@ public interface UserService extends UserDetailsService{
 
     User register(UserRegisterBindingModel model);
 
-    User edit(UserEditBindingModel model, String handle);
+    User edit(UserEditBindingModel model, String handle) throws UserNotFound;
 
     UserEditBindingModel getUserSettings(String handle);
 
