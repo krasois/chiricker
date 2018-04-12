@@ -3,12 +3,11 @@ package com.chiricker.users.models.entities;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
 public class Role implements GrantedAuthority {
-
-    private static final String ROLE_REFIX = "ROLE_";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +32,7 @@ public class Role implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return ROLE_REFIX + this.authority;
+        return this.authority;
     }
 
     public void setAuthority(String authority) {

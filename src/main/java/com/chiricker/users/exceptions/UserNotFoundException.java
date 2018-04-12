@@ -1,14 +1,14 @@
 package com.chiricker.users.exceptions;
 
-public class UserNotFound extends Exception{
+public class UserNotFoundException extends Exception{
 
     private static final String DEFAULT_MESSAGE = "User was not found";
 
-    public UserNotFound() {
+    public UserNotFoundException() {
         super(DEFAULT_MESSAGE);
     }
 
-    public UserNotFound(String message) {
+    public UserNotFoundException(String message) {
         super(message);
     }
 }

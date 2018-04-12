@@ -1,0 +1,49 @@
+<div class="row" th:object="${details.getChirick()}">
+
+    <div class="col col-lg-2">
+        <img class="img-fluid rounded-circle" alt="Profile image"
+             th:src="${details.getUser().getProfilePicUrl()}">
+    </div>
+
+    <div class="col col-lg-10">
+        <div class="row">
+            <div class="col col-lg-10" th:if="*{getParentUrl()} != null">
+                <a class="card-subtitle text-muted" th:href="*{getParentUrl()}">Original Post</a>
+            </div>
+            <div class="col col-lg-10">
+                <h5 th:text="${details.getUser().getName()}"></h5>
+                <h6 class="card-subtitle text-muted" th:text="${'@' + details.getUser().getHandle()}"></h6>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <p class="col col-lg-11" th:text="*{getChirick()}"></p>
+        </div>
+
+        <div class="row">
+            <div class="col col-lg-10 mb-2">
+                <h6 class="card-subtitle text-muted mt-1"
+                    th:text="${#dates.format(details.getDate(), 'HH:mm dd-MMM-yyyy')}"></h6>
+            </div>
+        </div>
+
+        <div class="row" id="actions">
+            <div class="col col-lg-10 mb-2">
+                <h5>
+                        <span class="fake-link link-color link-color-green" title="Rechirick" id="postChirick"
+                              th:text="'&#x21C6; ' + ( (*{getRechiricksSize()} > 0) ? *{getRechiricksSize()} : '')"
+                              th:classappend="*{isRechiricked()} ? link-color-green-active"></span>
+                    <span class="fake-link link-color link-color-red ml-3" title="Like" id="postLike"
+                          th:text="'&#x2764; ' + ( (*{getLikesSize()} > 0) ? *{getLikesSize()} : '')"
+                          th:classappend="*{isLiked()} ? link-color-red-active"></span>
+                    <span class="fake-link link-color link-color-blue ml-3" title="Comment"
+                          th:text="'&#x1f4ac; ' + ( (*{getCommentsSize()} > 0) ? *{getCommentsSize()} : '')"
+                          th:classappend="*{isCommented()} ? link-color-blue-active"
+                          data-toggle="modal" data-target="#commentModal"></span>
+                </h5>
+            </div>
+        </div>
+    </div>
+
+    <p id="postId" hidden="hidden" th:text="*{getId()}"></p>
+</div>

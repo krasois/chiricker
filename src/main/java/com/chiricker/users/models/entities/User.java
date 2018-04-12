@@ -1,5 +1,6 @@
 package com.chiricker.users.models.entities;
 
+import com.chiricker.chiricks.models.entities.Chirick;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +34,7 @@ public class User implements UserDetails{
     @Column(name = "email", nullable = false)
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST })
     @JoinTable(name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
         inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
@@ -57,6 +58,18 @@ public class User implements UserDetails{
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_id")
     private Profile profile;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = { CascadeType.ALL })
+    private Set<Chirick> chiricks;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = { CascadeType.ALL })
+    private Set<Chirick> comments;
+
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "rechiricks", cascade = { CascadeType.ALL })
+    private Set<Chirick> rechiricks;
+
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "likes", cascade = { CascadeType.ALL })
+    private Set<Chirick> likes;
 
     public User() {
     }
@@ -165,5 +178,37 @@ public class User implements UserDetails{
 
     public void setProfile(Profile profile) {
         this.profile = profile;
+    }
+
+    public Set<Chirick> getChiricks() {
+        return chiricks;
+    }
+
+    public void setChiricks(Set<Chirick> chiricks) {
+        this.chiricks = chiricks;
+    }
+
+    public Set<Chirick> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<Chirick> comments) {
+        this.comments = comments;
+    }
+
+    public Set<Chirick> getRechiricks() {
+        return rechiricks;
+    }
+
+    public void setRechiricks(Set<Chirick> rechiricks) {
+        this.rechiricks = rechiricks;
+    }
+
+    public Set<Chirick> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Set<Chirick> likes) {
+        this.likes = likes;
     }
 }

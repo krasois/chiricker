@@ -11,7 +11,7 @@
 
         <form class="form mt-3" th:method="POST" th:action="@{/register}" th:object="${user}">
 
-            <div th:replace="fragments/user/register-form-fields :: register-fields"></div>
+            <div th:replace="fragments/user/register-form-fields"></div>
 
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 

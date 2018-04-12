@@ -1,0 +1,98 @@
+<div class="row">
+
+    <div class="col col-lg-4">
+        <div class="card border-light card-size mb-3">
+            <div class="card-body" id="userCard" th:object="${details.getUser()}">
+                <img class="img-fluid rounded-circle" alt="Profile picture" th:src="*{getProfilePicUrl()}"/>
+
+                <h5 class="card-title" th:text="*{getName()}"></h5>
+
+                <h6 class="card-subtitle text-muted mb-2" th:text="*{'@' + getHandle()}"
+                    id="userCardHandle"></h6>
+
+                <p class="card-text" th:text="*{getProfileBiography()}"></p>
+                <a class="card-link" th:text="*{getProfileWebsiteUrl()}"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col col-lg-8">
+        <div class="card border-light mb-3 w-100 row" style="width: 18rem;">
+            <div class="card-body" id="content">
+
+                <div th:replace="fragments/chirick/chirick"></div>
+
+                <div class="row">
+                    <div class="col col-lg-12 form-green">
+                        <form class="form mt-3">
+                            <div class="form-group">
+                                <textarea class="form-control" style="resize: none" placeholder="Comment on chirick!"
+                                          rows="3" name="comment"></textarea>
+                            </div>
+
+                            <div class="d-flex">
+                                <button type="button" class="btn btn-outline-success ml-auto mb-2" th:attr="data-id=${details.getChirick().getId()}" id="postComment">Comment</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <hr class="my-1 mt-3 mb-2"/>
+
+                <div class="d-flex justify-content-center" id="loader">
+                    <div class="loader"></div>
+                </div>
+            </div>
+
+            <div id="end"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let page = (function () {
+        const maxPerPage = 15;
+        let current = 0;
+        let hasNext = true;
+
+        return function () {
+            return {
+                getNext: () => {
+                    return current++;
+                },
+                hasNext: (has) => {
+                    if (has === undefined) return hasNext;
+                    hasNext = has;
+                    return hasNext;
+                },
+                getMaxPerPage: () => { return maxPerPage; }
+            }
+        }
+    })();
+
+    $(() => {
+        $("div.card-body#content").ready(() => {
+            getCommentsForPost();
+
+            let endEl = $("#end");
+            let windowEl = $(window);
+
+            windowEl.scroll(function() {
+                if (page().hasNext()) {
+                    executeWhenInView(endEl, windowEl, getCommentsForPost);
+                }
+            });
+
+            $("#postChirick").click((event) => {
+                rechirick(event.target, "#postId");
+            });
+            $("#postLike").click((event) => {
+                like(event.target, "#postId");
+            });
+            $("#postComment").click((event) => {
+                comment(event.target);
+            });
+        });
+    });
+</script>

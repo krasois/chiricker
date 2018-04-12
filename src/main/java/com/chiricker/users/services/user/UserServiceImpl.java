@@ -1,11 +1,12 @@
 package com.chiricker.users.services.user;
 
-import com.chiricker.users.exceptions.UserNotFound;
+import com.chiricker.users.exceptions.UserNotFoundException;
 import com.chiricker.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.users.models.entities.Profile;
 import com.chiricker.users.models.entities.Role;
 import com.chiricker.users.models.entities.User;
 import com.chiricker.users.models.binding.UserEditBindingModel;
+import com.chiricker.users.models.view.ProfileViewModel;
 import com.chiricker.users.models.view.UserCardViewModel;
 import com.chiricker.users.models.view.UserNavbarViewModel;
 import com.chiricker.users.repositories.UserRepository;
@@ -80,12 +81,6 @@ public class UserServiceImpl implements UserService {
                 }};
                 d.setProfile(profile);
 
-                Role userRole = roleService.getUserRole();
-                Set<Role> roles = new HashSet<>() {{
-                    add(userRole);
-                }};
-                d.setAuthorities(roles);
-
                 return d;
             }
         };
@@ -139,14 +134,35 @@ public class UserServiceImpl implements UserService {
             }
         };
 
+        Converter<User, ProfileViewModel> profile = new Converter<User, ProfileViewModel>() {
+            @Override
+            public ProfileViewModel convert(MappingContext<User, ProfileViewModel> context) {
+                User s = context.getSource();
+                ProfileViewModel d = context.getDestination();
+
+                d.setHandle(s.getHandle());
+                d.setName(s.getName());
+                d.setBiography(s.getProfile().getBiography());
+                d.setProfilePicUrl(s.getProfile().getProfilePicUrl());
+                d.setWebsiteUrl(s.getProfile().getWebsiteUrl());
+                d.setChiricksCount(s.getChiricks().size());
+                d.setFollowersCount(0);
+                d.setFollowingCount(0);
+
+                return d;
+            }
+        };
+
         this.mapper.addConverter(register);
         this.mapper.addConverter(edit);
         this.mapper.addConverter(userSettings);
         this.mapper.addConverter(userCard);
+        this.mapper.addConverter(profile);
     }
 
-    private void handlePictureFile(User user, MultipartFile profilePicture) {
-        if (profilePicture != null) {
+    @Async
+    public void handlePictureFile(User user, MultipartFile profilePicture) {
+        if (profilePicture.getSize() > 0) {
             String oldProfilePic = user.getProfile().getProfilePicUrl();
 
             try (InputStream in = profilePicture.getInputStream()) {
@@ -185,6 +201,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getByHandle(String handle) {
+        return this.userRepository.findByHandle(handle);
+    }
+
+    @Override
     public boolean handleExists(String handle) {
         return this.userRepository.existsByHandleIs(handle);
     }
@@ -192,15 +213,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(UserRegisterBindingModel model) {
         User user = this.mapper.map(model, User.class);
+        Role userRole = roleService.getUserRole();
+
+        Set<Role> roles = new HashSet<>() {{
+            add(userRole);
+        }};
+        user.setAuthorities(roles);
+
         return this.userRepository.saveAndFlush(user);
     }
 
     @Override
-    public User edit(UserEditBindingModel model, String handle) throws UserNotFound {
+    public User edit(UserEditBindingModel model, String handle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(handle);
-        if (user == null) throw new UserNotFound("User with handle " + handle + " was not found");
+        if (user == null) throw new UserNotFoundException("User with handle " + handle + " was not found");
+
         this.mapper.map(model, user);
         this.handlePictureFile(user, model.getProfilePicture());
+
         return this.userRepository.saveAndFlush(user);
     }
 
@@ -220,6 +250,13 @@ public class UserServiceImpl implements UserService {
     public UserNavbarViewModel getNavbarInfo(String handle) {
         User user = this.userRepository.findByHandle(handle);
         return this.mapper.map(user, UserNavbarViewModel.class);
+    }
+
+    @Override
+    public ProfileViewModel getProfileByHandle(String handle) throws UserNotFoundException {
+        User user = this.userRepository.findByHandle(handle);
+        if (user == null) throw new UserNotFoundException("User with handle " + handle + " was not found");
+        return this.mapper.map(user, ProfileViewModel.class);
     }
 
     @Override

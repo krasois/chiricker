@@ -18,6 +18,7 @@ public class MultipartFileTypeValidator implements ConstraintValidator<Multipart
 
     @Override
     public boolean isValid(MultipartFile multipartFile, ConstraintValidatorContext constraintValidatorContext) {
+        if (multipartFile.getSize() < 1) return true;
         for (MIMEType supportedType : supportedTypes) {
             if (supportedType.getMimeType().equals(multipartFile.getContentType())) return true;
         }

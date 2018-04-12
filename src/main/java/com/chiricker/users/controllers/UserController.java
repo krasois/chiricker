@@ -1,21 +1,17 @@
 package com.chiricker.users.controllers;
 
-import com.chiricker.controllers.BaseController;
-import com.chiricker.users.exceptions.UserNotFound;
+import com.chiricker.general.controllers.BaseController;
+import com.chiricker.users.exceptions.UserNotFoundException;
 import com.chiricker.users.models.binding.UserLoginBindingModel;
 import com.chiricker.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.users.models.binding.UserEditBindingModel;
-import com.chiricker.users.services.role.RoleService;
-import com.chiricker.users.services.role.RoleServiceImpl;
+import com.chiricker.users.models.entities.User;
+import com.chiricker.users.models.view.ProfileViewModel;
 import com.chiricker.users.services.user.UserService;
-import com.dropbox.core.v2.DbxClientV2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
@@ -56,9 +52,14 @@ public class UserController extends BaseController {
     }
 
     @PostMapping(value = "/settings")
-    public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFound {
+    public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFoundException {
         if (result.hasErrors()) { return this.view("users/settings"); }
         this.userService.edit(user, principal.getName());
-        return this.redirect("/" + principal.getName());
+        return this.redirect("/@" + principal.getName());
+    }
+
+    @GetMapping("/@{handle}")
+    public ModelAndView userProfile(@PathVariable("handle") String handle) throws UserNotFoundException {
+        return this.view("users/profile", "profile", this.userService.getProfileByHandle(handle));
     }
 }

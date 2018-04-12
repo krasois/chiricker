@@ -1,60 +1,58 @@
-<th:block th:fragment="register-fields">
-    <div class="form-group mb-2" th:classappend="${#fields.hasErrors('name')} ? 'has-danger'">
-        <label for="name">Name</label>
-        <input class="form-control" type="text" id="name" name="name" placeholder="Name..." th:field="*{name}"/>
+<div class="form-group mb-2" th:classappend="${#fields.hasErrors('name')} ? 'has-danger'">
+    <label for="name">Name</label>
+    <input class="form-control" type="text" id="name" name="name" placeholder="Name..." th:field="*{name}"/>
 
-        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('name')}">
-            <div>
-                <small class="text-danger" th:text="${error}"></small>
-            </div>
-        </th:block>
-    </div>
-
-    <div class="form-group mb-2" th:classappend="${#fields.hasErrors('handle')} ? 'has-danger'">
-        <label for="handle">Handle</label>
-        <div class="input-group">
-            <span class="input-group-text">@</span>
-            <input type="text" class="form-control" id="handle" placeholder="handle" th:field="*{handle}"/>
+    <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('name')}">
+        <div>
+            <small class="text-danger" th:text="${error}"></small>
         </div>
+    </th:block>
+</div>
 
-        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('handle')}">
-            <div>
-                <small class="text-danger" th:text="${error}"></small>
-            </div>
-        </th:block>
+<div class="form-group mb-2" th:classappend="${#fields.hasErrors('handle')} ? 'has-danger'">
+    <label for="handle">Handle</label>
+    <div class="input-group">
+        <span class="input-group-text">@</span>
+        <input type="text" class="form-control" id="handle" placeholder="handle" th:field="*{handle}"/>
     </div>
 
-    <div class="form-group mb-2" th:classappend="${#fields.hasErrors('password')} ? 'has-danger'">
-        <label for="password">Password</label>
-        <input class="form-control" type="password" id="password" name="password"/>
+    <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('handle')}">
+        <div>
+            <small class="text-danger" th:text="${error}"></small>
+        </div>
+    </th:block>
+</div>
 
-        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('password')}">
-            <div>
-                <small class="text-danger" th:text="${error}"></small>
-            </div>
-        </th:block>
-    </div>
+<div class="form-group mb-2" th:classappend="${#fields.hasErrors('password')} ? 'has-danger'">
+    <label for="password">Password</label>
+    <input class="form-control" type="password" id="password" name="password"/>
 
-    <div class="form-group mb-2" th:classappend="${#fields.hasErrors('global')} ? 'has-danger'">
-        <label for="confirmPassword">Confirm Password</label>
-        <input class="form-control" type="password" id="confirmPassword" name="confirmPassword"/>
+    <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('password')}">
+        <div>
+            <small class="text-danger" th:text="${error}"></small>
+        </div>
+    </th:block>
+</div>
 
-        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('global')}">
-            <div>
-                <small class="text-danger" th:text="${error}"></small>
-            </div>
-        </th:block>
-    </div>
+<div class="form-group mb-2" th:classappend="${#fields.hasErrors('global')} ? 'has-danger'">
+    <label for="confirmPassword">Confirm Password</label>
+    <input class="form-control" type="password" id="confirmPassword" name="confirmPassword"/>
 
-    <div class="group-group mb-2" th:classappend="${#fields.hasErrors('email')} ? 'has-danger'">
-        <label for="email">Email</label>
-        <input class="form-control" type="email" id="email" name="email" placeholder="example@email.com"
-               th:field="*{email}"/>
+    <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('global')}">
+        <div>
+            <small class="text-danger" th:text="${error}"></small>
+        </div>
+    </th:block>
+</div>
 
-        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('email')}">
-            <div>
-                <small class="text-danger" th:text="${error}"></small>
-            </div>
-        </th:block>
-    </div>
-</th:block>
+<div class="group-group mb-2" th:classappend="${#fields.hasErrors('email')} ? 'has-danger'">
+    <label for="email">Email</label>
+    <input class="form-control" type="email" id="email" name="email" placeholder="example@email.com"
+           th:field="*{email}"/>
+
+    <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('email')}">
+        <div>
+            <small class="text-danger" th:text="${error}"></small>
+        </div>
+    </th:block>
+</div>

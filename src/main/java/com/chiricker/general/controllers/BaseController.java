@@ -1,4 +1,4 @@
-package com.chiricker.controllers;
+package com.chiricker.general.controllers;
 
 import org.springframework.web.servlet.ModelAndView;
 

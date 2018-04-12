@@ -1,16 +1,20 @@
-<th:block th:fragment="user-card">
-    <div class="col">
-        <div class="card border-light mb-3" style="width: 18rem;">
-            <div class="card-body"  id="userCard">
-                <img class="img-fluid rounded-circle" alt="Profile picture" id="userCardPicture"/>
+<div class="col col-lg-4">
+    <div class="card border-light card-size mb-3">
+        <div class="card-body" id="userCard">
+            <img class="img-fluid rounded-circle" alt="Profile picture" id="userCardPicture"/>
 
-                <h5 class="card-title" id="userCardName"></h5>
+            <h5 class="card-title" id="userCardName"></h5>
 
-                <h6 class="card-subtitle text-muted mb-2" id="userCardHandle"></h6>
+            <h6 class="card-subtitle text-muted mb-2" id="userCardHandle"></h6>
 
-                <p class="card-text" id="userCardBio"></p>
-                <a class="card-link" id="userCardWebsite"></a>
-            </div>
+            <p class="card-text" id="userCardBio"></p>
+            <a class="card-link" id="userCardWebsite"></a>
         </div>
     </div>
-</th:block>
+</div>
+
+<script>
+    $("#userCard").ready(() => {
+        getUserCard();
+    });
+</script>

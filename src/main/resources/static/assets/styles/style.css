@@ -10,8 +10,15 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
     max-width: 45px;
 }
 
-.card-image {
-    max-width: 70px;
+.post-image-small {
+    min-width: 5rem;
+    width: auto;
+}
+
+.card-size {
+    max-width: 18rem;
+    min-width: 10rem;
+    width: auto;
 }
 
 .dropdown-item-name:hover {
@@ -26,4 +33,87 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
     nav.navbar {
         background: white;
     }
+}
+
+.link-color {
+    color: #b9bbbe;
+}
+
+.fake-link {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.link-color:hover {
+    text-decoration: none;
+}
+
+.link-color-red-active {
+    color: #c82333;
+}
+
+.link-color-red:hover {
+    color: #c82333;
+}
+
+.link-color-green-active {
+    color: #5cb85c;
+}
+
+.link-color-green:hover {
+    text-decoration: none;
+    color: #5cb85c;
+}
+
+.link-color-blue-active {
+    color: #0062cc;
+}
+
+.link-color-blue:hover {
+    text-decoration: none;
+    color: #0062cc;
+}
+
+.link-active {
+    color: inherit;
+}
+
+.link-text {
+    text-decoration: none;
+    color: black;
+}
+
+.link-text:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active  {
+    color: #5cb85c;
+}
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link:hover {
+    color: #5cb85c;
+}
+
+.loader {
+    border: 7px solid #f3f3f3; /* Light grey */
+    border-top: 7px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#chirick:hover {
+    background-color: #f7f7f7;
+    cursor: pointer;
+}
+
+.form-green {
+    background-color: #d5f9cf;
 }
