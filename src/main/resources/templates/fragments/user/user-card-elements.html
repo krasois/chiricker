@@ -1,0 +1,12 @@
+<span th:if="*{#authorization.getAuthentication().getName() != getHandle()}" th:text="*{isFollowing()} ? 'Following' : 'Follow'"
+      th:classappend="*{isFollowing()} ? btn-success : btn-outline-success" class="fake-link btn btn-sm col mb-3" id="followBtn"
+        th:attr="data-handle=*{getHandle()}"></span>
+
+<img class="img-fluid rounded-circle" alt="Profile picture" th:src="*{getProfilePicUrl()}"/>
+
+<h5 class="card-title" th:text="*{getName()}"></h5>
+
+<h6 class="card-subtitle text-muted mb-2" th:text="*{'@' + getHandle()}" id="userCardHandle"></h6>
+
+<p class="card-text" th:text="*{getProfileBiography()}"></p>
+<a class="card-link" th:href="@{*{getProfileWebsiteUrl()}}" th:text="*{getProfileWebsiteUrl()}"></a>

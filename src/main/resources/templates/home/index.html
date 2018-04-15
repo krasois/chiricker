@@ -1,21 +1,85 @@
 <div class="row" sec:authorize="isAuthenticated()">
 
-    <div th:replace="fragments/user/user-card"></div>
+    <div class="col col-lg-4">
+        <div class="card border-light card-size mb-3">
+            <div class="card-body" id="userCard" th:object="${profile}">
 
-    <div class="col col-lg-8">
-        <div class="card border-light mb-3 w-100" style="width: 18rem;">
-            <div class="card-body" id="content">
+                <div th:replace="fragments/user/user-card-elements"></div>
 
-                <th:block th:replace="fragments/index/chirick-form"></th:block>
-
-                <hr class="my-1" />
             </div>
         </div>
     </div>
 
+    <div class="col">
+
+        <div class="mb-1 w-100 row" id="alert"></div>
+
+        <div class="card border-light w-100 row form-green" style="width: 18rem;">
+            <div class="card-body">
+
+                <th:block th:replace="fragments/index/chirick-form"></th:block>
+
+            </div>
+        </div>
+
+        <div class="card border-light w-100 row" style="width: 18rem;">
+            <div class="card-body" id="content">
+
+            </div>
+        </div>
+
+        <div class="row w-100" id="end"></div>
+    </div>
+
     <script>
+        let page = (function () {
+            const maxPerPage = 15;
+            let current = 0;
+            let hasNext = true;
+            let loadingFunction = getTimeline;
+
+            return function () {
+                return {
+                    getNext: () => {
+                        return current++;
+                    },
+                    hasNext: (has) => {
+                        if (has === undefined) return hasNext;
+                        hasNext = has;
+                        return hasNext;
+                    },
+                    getMaxPerPage: () => {
+                        return maxPerPage;
+                    },
+                    execLoadFunction: () => {
+                        return loadingFunction();
+                    },
+                    setLoadingFunction: (func) => {
+                        loadingFunction = func
+                    },
+                    reset: () => {
+                        current = 0;
+                        hasNext = true;
+                    }
+                }
+            }
+        })();
+
         $(function () {
             setChirickToggling();
+
+            page().execLoadFunction();
+            let contentHolder = $("#content");
+            contentHolder.ready(() => {
+                let endEl = $("#end");
+                let windowEl = $(window);
+
+                windowEl.scroll(function () {
+                    if (page().hasNext()) {
+                        executeWhenInView(endEl, windowEl, page().execLoadFunction);
+                    }
+                });
+            });
         })();
     </script>
 </div>

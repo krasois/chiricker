@@ -1,0 +1,87 @@
+<div class="row">
+
+    <div class="col col-lg-4">
+        <div class="card border-light card-size mb-3 w-100 row">
+            <div class="card-body" id="userCard" th:object="${profile}">
+
+                <div th:replace="fragments/user/user-card-elements"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+
+        <div class="mb-1 row w-100" id="alert"></div>
+
+        <div class="card border-light mb-3 w-100 row">
+            <div class="card-body">
+
+                <div class="row" th:object="${profile}">
+                    <a class="text-center link-color link-color-green ml-3"
+                       th:href="@{/@} + *{getHandle()}">Activity
+                        <div th:text="*{getChiricksCount()}"></div>
+                    </a>
+                    <a class="text-center link-color link-color-green ml-3"
+                       th:href="@{/@{handle}/following(handle=*{getHandle()})}">Following
+                        <div th:text="*{getFollowingCount()}"></div>
+                    </a>
+                    <a class="text-center link-color link-color-green link-color-green-active ml-3"
+                       th:href="@{/@{handle}/followers(handle=*{getHandle()})}">Followers
+                        <div th:text="*{getFollowersCount()}"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-100 row d-flex justify-content-between align-items-stretch" id="content"></div>
+
+        <div class="row w-100" id="end"></div>
+
+    </div>
+
+</div>
+
+<script>
+    let page = (function () {
+        const maxPerPage = 20;
+        let current = 0;
+        let hasNext = true;
+        let loadingFunction = getFollowersForUser;
+
+        return function () {
+            return {
+                getNext: () => { return current++; },
+                hasNext: (has) => {
+                    if (has === undefined) return hasNext;
+                    hasNext = has;
+                    return hasNext;
+                },
+                getMaxPerPage: () => { return maxPerPage; },
+                execLoadFunction: () => { return loadingFunction(); },
+                setLoadingFunction: (func) => { loadingFunction = func },
+                reset: () => { current = 0; hasNext = true; }
+            }
+        }
+    })();
+
+    $(() => {
+        $('#followBtn').click((event) => {
+            follow(event.target);
+        });
+
+        page().execLoadFunction();
+        let contentHolder = $("#content");
+        contentHolder.ready(() => {
+            let endEl = $("#end");
+            let windowEl = $(window);
+
+            windowEl.scroll(function() {
+                if (page().hasNext()) {
+                    executeWhenInView(endEl, windowEl, page().execLoadFunction);
+                }
+            });
+
+        });
+    });
+</script>

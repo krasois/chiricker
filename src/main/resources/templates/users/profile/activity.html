@@ -1,0 +1,115 @@
+<div class="row">
+
+    <div class="col col-lg-4">
+        <div class="card border-light card-size mb-3">
+            <div class="card-body" id="userCard" th:object="${profile}">
+
+                <div th:replace="fragments/user/user-card-elements"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+
+        <div class="mb-1 row w-100" id="alert"></div>
+
+        <div class="card border-light mb-3 w-100 row" style="width: 18rem;">
+            <div class="card-body">
+
+                <div class="row" th:object="${profile}">
+                    <a class="text-center link-color link-color-green link-color-green-active ml-3"
+                       th:href="@{/@} + *{getHandle()}">Activity
+                        <div th:text="*{getChiricksCount()}"></div>
+                    </a>
+                    <a class="text-center link-color link-color-green ml-3"
+                       th:href="@{/@{handle}/following(handle=*{getHandle()})}">Following
+                        <div th:text="*{getFollowingCount()}"></div>
+                    </a>
+                    <a class="text-center link-color link-color-green ml-3"
+                       th:href="@{/@{handle}/followers(handle=*{getHandle()})}">Followers
+                        <div th:text="*{getFollowersCount()}"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="card border-light mb-3 w-100 row" style="width: 18rem;">
+            <div class="card-body">
+
+                <ul class="nav nav-tabs" id="activityTabs">
+                    <li class="nav-item">
+                        <span class="nav-link active" id="chiricksTab">Chiricks</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="rechiricksTab">Rechiricks</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="commentsTab">Comments</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="likesTab">Likes</span>
+                    </li>
+                </ul>
+
+                <div class="d-flex justify-content-center" id="loader">
+                    <div class="loader"></div>
+                </div>
+            </div>
+
+            <div class="card-body" id="content">
+
+            </div>
+
+            <div id="end"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let page = (function () {
+        const maxPerPage = 15;
+        let current = 0;
+        let hasNext = true;
+        let loadingFunction = getChiricksForUser;
+
+        return function () {
+            return {
+                getNext: () => { return current++; },
+                hasNext: (has) => {
+                    if (has === undefined) return hasNext;
+                    hasNext = has;
+                    return hasNext;
+                },
+                getMaxPerPage: () => { return maxPerPage; },
+                execLoadFunction: () => { return loadingFunction(); },
+                setLoadingFunction: (func) => { loadingFunction = func },
+                reset: () => { current = 0; hasNext = true; }
+            }
+        }
+    })();
+
+    $(() => {
+        $('#followBtn').click((event) => {
+            follow(event.target);
+        });
+
+        page().execLoadFunction();
+        let contentHolder = $("#content");
+        contentHolder.ready(() => {
+            let endEl = $("#end");
+            let windowEl = $(window);
+
+            windowEl.scroll(function() {
+                if (page().hasNext()) {
+                    executeWhenInView(endEl, windowEl, page().execLoadFunction);
+                }
+            });
+
+            initializeActivityTabs(contentHolder);
+        });
+    });
+</script>

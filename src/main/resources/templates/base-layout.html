@@ -12,15 +12,13 @@
 
     <main>
         <div class="jumbotron">
-            <div class="col-sm-7 offset-sm-2">
+            <div class="col col-md-12 col-lg-7 offset-md-0 offset-lg-2">
                 <th:block th:replace="${view}"></th:block>
             </div>
         </div>
     </main>
 
-    <footer>
-        <div class="col-sm-7 offset-sm-2" th:include="fragments/footer"></div>
-    </footer>
+    <footer th:include="fragments/footer"></footer>
 </div>
 </body>
 </html>

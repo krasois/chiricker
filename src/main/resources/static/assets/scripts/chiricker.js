@@ -1,20 +1,3 @@
-function getUserCard() {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json",
-        url: "/user/card",
-        success: function (data) {
-            $("#userCardPicture").attr("src", data.profilePicUrl);
-            $("#userCardName").text(data.name);
-            $("#userCardHandle").text("@" + data.handle);
-            $("#userCardBio").text(data.biography);
-            let website = $("#userCardWebsite");
-            website.text(data.websiteUrl);
-            website.attr("href", data.websiteUrl);
-        }
-    });
-}
-
 function getUserProfileInfo() {
     $.ajax({
         type: "GET",
@@ -67,10 +50,10 @@ function sendChirick() {
         data: data,
         headers: headers,
         success: function (message) {
-            $("#content").prepend(createAlert("alert-success", message));
+            $('#alert').append(createAlert("alert-success", message));
         },
         error: function (data) {
-            $("#content").prepend(createAlert("alert-danger", data.responseText));
+            $('#alert').append(createAlert("alert-danger", data.responseText));
         }
     });
 }
@@ -82,15 +65,17 @@ function createAlert(alertColorClass, message) {
         .append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>");
 }
 
+
 function getActivityForUser(activityType) {
     let handle = $("#userCardHandle").text();
 
     let contentHolder = $("#content");
 
     let loader = $("#loader");
-    if (!loader.length) loader =
-        $('<div class="d-flex justify-content-center" id="loader">')
-            .append($('<div class="loader">'));
+    if (!loader.length) {
+        loader = $('<div class="d-flex justify-content-center" id="loader">')
+                .append($('<div class="loader">'));
+    }
 
     contentHolder.append(loader);
 
@@ -100,8 +85,8 @@ function getActivityForUser(activityType) {
         url: '/chirick/' + handle + '/' + activityType + '?page=' + page().getNext(),
         error: () => {
             loader.remove();
-            contentHolder
-                .prepend(createAlert("alert-danger", "Chiricks could not be loaded, refresh the page and try again."))
+            $('#alert')
+                .append(createAlert("alert-danger", "Chiricks could not be loaded, refresh the page and try again."))
         },
         success: (data) => {
             loader.remove();
@@ -113,11 +98,51 @@ function getActivityForUser(activityType) {
             let chiricksCount = $(".modal").length;
             for (let i = 0; i < data.length; i++) {
                 let chirick = data[i];
-                createChirickDiv(chirick, chiricksCount + i, contentHolder);
+                let div = createChirickDiv(chirick, chiricksCount + i);
+                contentHolder.append(div).append('<hr class="my-1 mt-3 mb-2" />');
             }
         }
     });
 }
+
+function getRelationshipsForUser(relationshipType) {
+    let contentHolder = $("#content");
+
+    let loader = $("#loader");
+    if (!loader.length) {
+        loader = $('<div class="d-flex justify-content-center" id="loader">')
+                .append($('<div class="loader">'));
+    }
+
+    contentHolder.append(loader);
+
+    let handle  = $("#userCardHandle").text();
+
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        url: '/user/' + handle + '/' + relationshipType + '?page=' + page().getNext(),
+        success: (data) => {
+            console.log(data);
+            loader.remove();
+
+            if (data.length < page().getMaxPerPage()) {
+                page().hasNext(false);
+            }
+
+            for (let i = 0; i < data.length; i++) {
+                let user = data[i];
+                createFollowDiv(user, contentHolder);
+            }
+        },
+        error: () => {
+            loader.remove();
+            $('#alert')
+                .append(createAlert("alert-danger", "Followers could not be loaded, refresh the page and try again."))
+        }
+    });
+}
+
 
 function getChiricksForUser() {
     getActivityForUser("chiricks");
@@ -150,7 +175,7 @@ function getCommentsForPost() {
     $.ajax({
         type: 'GET',
         contentType: 'application/json',
-        url: '/chirick/comments/' + postId + '/all?page=' + page().getNext(),
+        url: '/chirick/comments/' + postId + '?page=' + page().getNext(),
         success: (data) => {
             loader.remove();
 
@@ -161,16 +186,71 @@ function getCommentsForPost() {
             let chiricksCount = $(".modal").length;
             for (let i = 0; i < data.length; i++) {
                 let chirick = data[i];
-                createChirickDiv(chirick, chiricksCount + i, contentHolder);
+                let div = createChirickDiv(chirick, chiricksCount + i);
+                contentHolder.append(div).append('<hr class="my-1 mt-3 mb-2" />');
             }
         },
         error: () => {
             loader.remove();
-            contentHolder
+            $('#alert')
                 .prepend(createAlert("alert-danger", "Comments could not be loaded, refresh the page and try again."))
         }
     });
 }
+
+function getFollowersForUser() {
+    getRelationshipsForUser("followers");
+}
+
+function getFollowingForUser() {
+    getRelationshipsForUser("following");
+}
+
+function getTimeline() {
+    let contentHolder = $("#content");
+
+    let loader = $("#loader");
+    if (!loader.length) loader =
+        $('<div class="d-flex justify-content-center" id="loader">')
+            .append($('<div class="loader">'));
+
+    contentHolder.append(loader);
+
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        url: '/timeline?page=' + page().getNext(),
+        error: () => {
+            loader.remove();
+            $('#alert')
+                .append(createAlert("alert-danger", "Chiricks could not be loaded, refresh the page and try again."))
+        },
+        success: (data) => {
+            loader.remove();
+
+            if (data.length < page().getMaxPerPage()) {
+                page().hasNext(false);
+            }
+
+            let chiricksCount = $(".modal").length;
+            for (let i = 0; i < data.length; i++) {
+                let timelinePost = data[i];
+                let chirick = timelinePost.chirick;
+
+                let div = createChirickDiv(chirick, chiricksCount + i);
+                contentHolder.append(div).append('<hr class="my-1 mt-3 mb-2" />');
+
+                let userRow = div.find('#userRow');
+                if (timelinePost.postTypeValue !== '') {
+                    let activity = $('<div class="col col-lg-10">')
+                        .append('<small class="card-subtitle text-muted">@' + timelinePost.userHandle + " " + timelinePost.postTypeValue + '</small>');
+                    $(userRow).prepend(activity);
+                }
+            }
+        }
+    });
+}
+
 
 function rechirick(target, idSelector) {
     let element = $(target);
@@ -208,7 +288,7 @@ function rechirick(target, idSelector) {
             }
         },
         error: (error) => {
-            $("#content").prepend(createAlert("alert-danger", error.message));
+            $('#alert').append(createAlert("alert-danger", error.message));
         }
     });
 }
@@ -249,7 +329,7 @@ function like(target, idSelector) {
             }
         },
         error: (error) => {
-            $("#content").prepend(
+            $('#alert').append(
                 createAlert("alert-danger", error.responseText));
         }
     });
@@ -274,17 +354,17 @@ function comment(target) {
     headers["_csrf"] = token;
     headers["_csrf_headerName"] = headerName;
 
-    let contentHolder = $("#content");
-
     $.ajax({
         type: 'POST',
         url: '/chirick/comment',
         data: data,
         headers: headers,
         success: (result) => {
-            let mainDiv = $("div.row").has(form);
-            let commentIcon = $(mainDiv[mainDiv.length - 1])
-                .find("span.link-color-blue");
+            let contentHolder = $("#content");
+            let mainDiv = $(form).parent().parent().parent().parent().parent().parent().parent();
+            let commentIcon = $(mainDiv)
+                .find(".link-color-blue");
+
             commentIcon
                 .addClass("link-color-blue-active")
                 .text("\uD83D\uDCAC " + (result.commentsSize > 0 ? result.commentsSize : ""));
@@ -293,23 +373,54 @@ function comment(target) {
         },
         error: (error) => {
             let errorMessage = error.responseText;
-            contentHolder.prepend(createAlert("alert-danger", errorMessage));
+            $('#alert').append(createAlert("alert-danger", errorMessage));
         }
     });
 }
 
-function executeWhenInView(element, windowEl, action) {
-    let top_of_element = element.offset().top;
-    let bottom_of_element = element.offset().top + element.outerHeight();
-    let bottom_of_screen = windowEl.scrollTop() + window.innerHeight;
-    let top_of_screen = windowEl.scrollTop();
+function follow(target) {
+    let targetElement = $(target);
+    let handle = targetElement.attr('data-handle');
 
-    if ((bottom_of_screen > top_of_element) && (top_of_screen < bottom_of_element)) {
-        action();
-    }
+    let token = $('meta[name="_csrf"]').attr("content");
+    let headerName = $('meta[name="_csrf_headerName"]').attr("content");
+
+    let headers = {};
+    headers["_csrf"] = token;
+    headers["_csrf_headerName"] = headerName;
+
+    let data = {};
+    data['handle'] = handle;
+    data['_csrf'] = token;
+
+    $.ajax({
+        type: 'POST',
+        url: '/user/follow',
+        data: data,
+        headers: headers,
+        error: () => {
+            let contentHolder = $('#alert');
+            contentHolder
+                .append(createAlert("alert-danger", "Could not follow user! Please try again!"));
+        },
+        success: (result) => {
+            if (result.unfollowed) {
+                targetElement
+                    .removeClass('btn-success')
+                    .addClass('btn-outline-success')
+                    .text('Follow');
+            } else {
+                targetElement
+                    .addClass('btn-success')
+                    .removeClass('btn-outline-success')
+                    .text('Following');
+            }
+        }
+    });
 }
 
-function createChirickDiv(chirick, index, content) {
+
+function createChirickDiv(chirick, index) {
     let mainRow = $('<div class=\"row\" id="mainRow">');
 
     let imageCol = $('<div class=\"col\">')
@@ -317,11 +428,10 @@ function createChirickDiv(chirick, index, content) {
 
     let mainCol = $('<div class="col col-lg-10">');
 
-    let userRow = $('<div class="row">');
+    let userRow = $('<div class="row" id="userRow">');
     if (chirick.parentUrl !== null) {
         let op = $('<div class="col col-lg-10">')
-            .append('<a class="card-subtitle text-muted" href="' + chirick.parentUrl + '">Original Post</a>');
-        console.log($(op));
+            .append('<a class="card-subtitle text-muted" href="' + chirick.parentUrl + '">Comment to</a>');
         userRow.append(op);
     }
 
@@ -329,8 +439,10 @@ function createChirickDiv(chirick, index, content) {
     let userCol = $('<div class="col col-lg-10">');
     let userName = $("<h5>")
         .text(chirick.userName);
-    let userHandle = $('<h6 class="card-subtitle text-muted">')
-        .text('@' + chirick.userHandle);
+    let userHandle = $('<h6 class="card-subtitle">')
+        .append($('<a class="text-muted">')
+            .attr("href", "/@" + chirick.userHandle)
+            .text('@' + chirick.userHandle));
 
     let chirickContent = $('<div class="row mt-3">')
         .append($('<div class="col col-lg-10">')
@@ -441,8 +553,167 @@ function createChirickDiv(chirick, index, content) {
             .text(chirick.id))
         .append(commentModal);
 
-    content
-        .append(mainRow)
-        .append('<hr class="my-1 mt-3 mb-2" />');
+    return mainRow;
+        // .append('<hr class="my-1 mt-3 mb-2" />');
+}
 
+function createFollowDiv(user, contentHolder) {
+    let card = $('<div class="col col-sm-12 col-md-12 col-lg-6 mb-4 w-100"><div class="card border-light h-100" ><div class="card-body"></div>');
+
+    let mainCol = $('<div class="col">');
+
+    let userRow = $('<div class="row">');
+
+    let userCol = $('<div class="col">');
+    let userName = $("<h5>")
+        .text(user.name);
+    let userHandle = $('<h6 class="card-subtitle">')
+        .append($('<a class="text-muted">')
+            .attr("href", "/@" + user.handle)
+            .text('@' + user.handle));
+
+    let followBtn = $('<span class="fake-link btn btn-sm col mt-1">')
+                .text(user.followed ? 'Following' : 'Follow')
+                .addClass(user.followed ? 'btn-success' : 'btn-outline-success')
+                .attr("data-handle", user.handle)
+                .click((event) => {
+                    follow(event.target);
+                });
+
+    let pictureCol = $('<div class="col">')
+        .append($('<img class="img-fluid rounded-circle min-user-image" alt="Profile picture" src="' + user.profilePicUrl + '"/>'));
+
+    let bioRow = $('<div class="row">')
+        .append($('<div class="col">')
+            .append($('<p>').text(user.profileBiography)));
+
+    if (!user.self) {
+        userCol.append(followBtn);
+    }
+
+    userCol
+        .append(userName)
+        .append(userHandle);
+
+    userRow
+        .append(pictureCol)
+        .append(userCol);
+
+    mainCol
+        .append(userRow)
+        .append(bioRow);
+
+    card.find('.card-body').append(mainCol);
+
+    contentHolder.append(card);
+}
+
+
+function executeWhenInView(element, windowEl, action) {
+    let top_of_element = element.offset().top;
+    let bottom_of_element = element.offset().top + element.outerHeight();
+    let bottom_of_screen = windowEl.scrollTop() + window.innerHeight;
+    let top_of_screen = windowEl.scrollTop();
+
+    if ((bottom_of_screen > top_of_element) && (top_of_screen < bottom_of_element)) {
+        action();
+    }
+}
+
+function initializeActivityTabs(contentHolder) {
+    let chirickTab = $("#chiricksTab");
+    let rechirickTab = $("#rechiricksTab");
+    let commentTab = $("#commentsTab");
+    let likeTab = $("#likesTab");
+
+    chirickTab.click(() => {
+        if (chirickTab.hasClass("active")) return;
+
+        contentHolder.html("");
+        $(chirickTab).addClass("active");
+        $(rechirickTab).removeClass("active");
+        $(commentTab).removeClass("active");
+        $(likeTab).removeClass("active");
+        page().reset();
+        page().setLoadingFunction(getChiricksForUser);
+        page().execLoadFunction();
+    });
+    rechirickTab.click(() => {
+        if (rechirickTab.hasClass("active")) return;
+
+        contentHolder.html("");
+        $(chirickTab).removeClass("active");
+        $(rechirickTab).addClass("active");
+        $(commentTab).removeClass("active");
+        $(likeTab).removeClass("active");
+        page().reset();
+        page().setLoadingFunction(getRechiricksForUser);
+        page().execLoadFunction();
+    });
+    commentTab.click(() => {
+        if (commentTab.hasClass("active")) return;
+
+        contentHolder.html("");
+        chirickTab.removeClass("active");
+        rechirickTab.removeClass("active");
+        commentTab.addClass("active");
+        likeTab.removeClass("active");
+        page().reset();
+        page().setLoadingFunction(getCommentsForUser);
+        page().execLoadFunction();
+    });
+
+    likeTab.click(() => {
+        if (likeTab.hasClass("active")) return;
+
+        contentHolder.html("");
+        chirickTab.removeClass("active");
+        rechirickTab.removeClass("active");
+        commentTab.removeClass("active");
+        likeTab.addClass("active");
+        page().reset();
+        page().setLoadingFunction(getLikesForUser);
+        page().execLoadFunction();
+    });
+}
+
+function isFileValid() {
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/bmp'];
+
+    let file = $("#profilePicture")[0].files[0];
+    let fileSize = file.size;
+    let isFileTypeSupported = $.inArray(file.type, supportedTypes) !== -1;
+
+    if (fileSize < 1000000 && isFileTypeSupported) return true;
+
+    let pictureDiv = $("#picture");
+
+    let errorDiv = $("#picError");
+    if (!errorDiv.length) {
+        errorDiv = $("<div id=\"picError\">");
+        pictureDiv.append(errorDiv);
+    } else {
+        errorDiv.html("");
+    }
+
+    if (fileSize > 1000000) {
+        let sizeError = $("#sizeError");
+        if (!sizeError.length) {
+            sizeError = $("<p class=\"text-danger mb-0\" id=\"sizeError\">");
+            errorDiv.append(sizeError);
+        }
+        sizeError.text("File size cannot be more than 1MB. ");
+    }
+
+    if (!isFileTypeSupported) {
+        console.log(fileSize);
+        let typeError = $("#typeError");
+        if (!typeError.length) {
+            typeError = $("<p class=\"text-danger mb-0\" id=\"typeError\">");
+            errorDiv.append(typeError);
+        }
+        typeError.text("File type has to be jpg, jpeg, png or bmp. ");
+    }
+
+    return false;
 }

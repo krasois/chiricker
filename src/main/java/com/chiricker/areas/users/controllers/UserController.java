@@ -1,0 +1,78 @@
+package com.chiricker.areas.users.controllers;
+
+import com.chiricker.controllers.BaseController;
+import com.chiricker.areas.users.exceptions.UserNotFoundException;
+import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
+import com.chiricker.areas.users.models.binding.UserLoginBindingModel;
+import com.chiricker.areas.users.models.binding.UserRegisterBindingModel;
+import com.chiricker.areas.users.models.binding.UserEditBindingModel;
+import com.chiricker.areas.users.services.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.Valid;
+import java.security.Principal;
+
+@Controller
+public class UserController extends BaseController {
+
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("/login")
+    @PreAuthorize("!isAuthenticated()")
+    public ModelAndView login(@ModelAttribute("user") UserLoginBindingModel user, @RequestParam(required = false) String error) {
+        if (error != null) return this.view("users/login", "error", "Handle and password do not match");
+        return this.view("users/login");
+    }
+
+    @GetMapping("/register")
+    @PreAuthorize("!isAuthenticated()")
+    public ModelAndView register(@ModelAttribute("user") UserRegisterBindingModel user) {
+        return this.view("users/register");
+    }
+
+    @PostMapping("/register")
+    @PreAuthorize("!isAuthenticated()")
+    public ModelAndView register(@Valid @ModelAttribute("user") UserRegisterBindingModel user, BindingResult result) throws UserRoleNotFoundException {
+        if (result.hasErrors()) return this.view("users/register");
+        this.userService.register(user);
+        return this.redirect("/login");
+    }
+
+    @GetMapping("/settings")
+    public ModelAndView settings(@ModelAttribute("user") UserEditBindingModel user, Principal principal) {
+        UserEditBindingModel userDetails = this.userService.getUserSettings(principal.getName());
+        return this.view("users/settings", "user", userDetails);
+    }
+
+    @PostMapping(value = "/settings")
+    public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFoundException {
+        if (result.hasErrors()) return this.view("users/settings");
+        this.userService.edit(user, principal.getName());
+        return this.redirect("/@" + principal.getName());
+    }
+
+    @GetMapping("/@{handle}")
+    public ModelAndView userProfile(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
+        return this.view("users/profile/activity", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+    }
+
+    @GetMapping("/@{handle}/followers")
+    public ModelAndView followers(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
+        return this.view("/users/profile/followers", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+    }
+
+    @GetMapping("/@{handle}/following")
+    public ModelAndView following(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
+        return this.view("/users/profile/following", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+    }
+}

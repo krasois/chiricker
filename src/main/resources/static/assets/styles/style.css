@@ -10,6 +10,12 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
     max-width: 45px;
 }
 
+.min-user-image {
+    min-width: 4rem;
+    max-width: 6rem;
+    width: auto;
+}
+
 .post-image-small {
     min-width: 5rem;
     width: auto;
