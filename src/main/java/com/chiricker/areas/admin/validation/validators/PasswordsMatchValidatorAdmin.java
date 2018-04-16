@@ -1,6 +1,6 @@
 package com.chiricker.areas.admin.validation.validators;
 
-import com.chiricker.areas.admin.models.EditUserBindingModel;
+import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
 import com.chiricker.areas.users.validation.annotations.PasswordsMatch;
 
 import javax.validation.ConstraintValidator;

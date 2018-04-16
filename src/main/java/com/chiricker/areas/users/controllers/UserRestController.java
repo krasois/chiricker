@@ -1,8 +1,11 @@
 package com.chiricker.areas.users.controllers;
 
 import com.chiricker.areas.chiricks.services.timeline.TimelineService;
+import com.chiricker.areas.logger.annotations.Logger;
+import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.binding.FollowBindingModel;
+import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.view.FollowResultViewModel;
 import com.chiricker.areas.users.models.view.FollowerViewModel;
 import com.chiricker.areas.users.models.view.UserCardViewModel;
@@ -40,6 +43,7 @@ public class UserRestController {
     }
 
     @PostMapping("/follow")
+    @Logger(entity = User.class, operation = Operation.FOLLOW)
     public FollowResultViewModel follow(FollowBindingModel model, Principal principal) throws UserNotFoundException {
         FollowResultViewModel followResult = this.userService.follow(model, principal.getName());
         if (followResult.isUnfollowed()) this.timelineService.unfollow(model.getHandle(), principal.getName());

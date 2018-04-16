@@ -1,14 +1,20 @@
 package com.chiricker.areas.admin.controllers;
 
-import com.chiricker.areas.admin.models.EditUserBindingModel;
+import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
+import com.chiricker.areas.admin.models.view.LogViewModel;
 import com.chiricker.areas.admin.models.view.UserPanelViewModel;
+import com.chiricker.areas.logger.annotations.Logger;
+import com.chiricker.areas.logger.models.entities.enums.Operation;
+import com.chiricker.areas.logger.services.log.LogService;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
+import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.services.user.UserService;
 import com.chiricker.areas.users.utils.FileUploader;
 import com.chiricker.controllers.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -24,17 +30,14 @@ import javax.validation.Valid;
 public class AdminController extends BaseController {
 
     private final UserService userService;
+    private final LogService logService;
     private final FileUploader fileUploader;
 
     @Autowired
-    public AdminController(UserService userService, FileUploader fileUploader) {
+    public AdminController(UserService userService, LogService logService, FileUploader fileUploader) {
         this.userService = userService;
+        this.logService = logService;
         this.fileUploader = fileUploader;
-    }
-
-    @GetMapping("")
-    public ModelAndView panel() {
-        return this.view("admin/panel");
     }
 
     @GetMapping("/users")
@@ -49,6 +52,11 @@ public class AdminController extends BaseController {
         return this.view("admin/disabled", "users", users);
     }
 
+    @GetMapping("/logs")
+    public ModelAndView logs(@PageableDefault(size = 15, direction = Sort.Direction.DESC, sort = "date") Pageable pageable) {
+        return this.view("admin/logs", "logs", this.logService.getLogs(pageable));
+    }
+
     @GetMapping("/users/edit/{id}")
     public ModelAndView editUser(@PathVariable("id") String id, @ModelAttribute("user") EditUserBindingModel user) throws UserNotFoundException {
         EditUserBindingModel userEditModel = this.userService.getUserSettingsAdmin(id);
@@ -56,6 +64,7 @@ public class AdminController extends BaseController {
     }
 
     @PostMapping("/users/edit/{id}")
+    @Logger(entity = User.class, operation = Operation.SETTINGS_CHANGE_ADMIN)
     public ModelAndView editUser(@PathVariable("id") String id, @Valid @ModelAttribute("user") EditUserBindingModel user, BindingResult result) throws UserNotFoundException {
         if (result.hasErrors()) return this.view("admin/edit");
         this.userService.editAdmin(id, user);
@@ -70,6 +79,7 @@ public class AdminController extends BaseController {
     }
 
     @PostMapping("/users/delete/{id}")
+    @Logger(entity = User.class, operation = Operation.DISABLE_USER)
     public ModelAndView deactivateUser(@PathVariable("id") String id) throws UserNotFoundException {
         this.userService.disableUser(id);
         return this.redirect("/admin");
@@ -82,6 +92,7 @@ public class AdminController extends BaseController {
     }
 
     @PostMapping("/users/enable/{id}")
+    @Logger(entity = User.class, operation = Operation.ENABLE_USER)
     public ModelAndView enableUser(@PathVariable("id") String id) throws UserNotFoundException {
         this.userService.enableUser(id);
         return this.redirect("/admin");

@@ -1,4 +1,4 @@
-package com.chiricker.areas.admin.models;
+package com.chiricker.areas.admin.models.binding;
 
 import com.chiricker.areas.admin.validation.annotations.CollectionSize;
 import com.chiricker.areas.users.validation.MIMEType;

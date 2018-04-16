@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.*;
 
@@ -72,6 +73,8 @@ public class ChirickServiceImpl implements ChirickService {
         User user = this.getUserWithHandle(handle);
 
         Chirick chirick = this.mapper.map(bindingModel, Chirick.class);
+        String escapedChirick = HtmlUtils.htmlEscape(chirick.getChirick());
+        chirick.setChirick(escapedChirick);
         chirick.setUser(user);
         this.chirickRepository.save(chirick);
 
@@ -138,7 +141,7 @@ public class ChirickServiceImpl implements ChirickService {
         ChirickCommentResultViewModel result = new ChirickCommentResultViewModel();
 
         Chirick comment = new Chirick();
-        comment.setChirick(model.getComment());
+        comment.setChirick(HtmlUtils.htmlEscape(model.getComment()));
         comment.setParent(chirick);
         comment.setUser(user);
 

@@ -7,13 +7,26 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 }
 
 .nav-image {
-    max-width: 45px;
+    max-width: 2rem;
 }
 
 .min-user-image {
     min-width: 4rem;
     max-width: 6rem;
     width: auto;
+}
+
+.form-rounded {
+    border-radius: 1rem 0 0 1rem;
+    border-right: 0;
+}
+
+.nav-search-btn {
+    border-radius: 0 1rem 1rem 0;
+    border-left: 0;
+    background-color: #ffffff;
+    border-color: #ced4da;
+    color: #5cb85c;
 }
 
 .post-image-small {
@@ -132,4 +145,28 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 
 .form-green {
     background-color: #d5f9cf;
+}
+
+.greeting-general {
+    background-color: #e9ffe0;
+}
+
+.greeting-morning {
+    background-color: #f7d7cf;
+}
+
+.greeting-noon {
+    background-color: #f7f4ca;
+}
+
+.greeting-afternoon {
+    background-color: #abe3f7;
+}
+
+.greeting-evening {
+    background-color: rgba(99, 114, 247, 0.5);
+}
+
+.greeting-night {
+    background-color: rgba(122, 5, 255, 0.29);
 }

@@ -1,6 +1,6 @@
 package com.chiricker.areas.users.services.user;
 
-import com.chiricker.areas.admin.models.EditUserBindingModel;
+import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
 import com.chiricker.areas.admin.models.view.UserPanelViewModel;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;

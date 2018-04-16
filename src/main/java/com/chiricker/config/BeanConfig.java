@@ -1,5 +1,7 @@
 package com.chiricker.config;
 
+import com.chiricker.areas.home.utils.greeting.Greeting;
+import com.chiricker.areas.home.utils.greeting.GreetingFactory;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import org.modelmapper.ModelMapper;
@@ -31,5 +33,15 @@ public class BeanConfig {
     @Bean
     public DbxClientV2 client() {
         return new DbxClientV2(this.config(), ACCESS_TOKEN);
+    }
+
+    @Bean
+    public GreetingFactory greetingFactory() {
+        return new GreetingFactory();
+    }
+
+    @Bean
+    public Greeting greeting() throws Exception {
+        return this.greetingFactory().getObject();
     }
 }

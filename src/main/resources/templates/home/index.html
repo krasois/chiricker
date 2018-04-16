@@ -2,7 +2,7 @@
 
     <div class="col col-lg-4">
         <div class="card border-light card-size mb-3">
-            <div class="card-body" id="userCard" th:object="${profile}">
+            <div class="card-body" id="userCard" th:object="${indexModel.getProfile()}">
 
                 <div th:replace="fragments/user/user-card-elements"></div>
 
@@ -14,7 +14,15 @@
 
         <div class="mb-1 w-100 row" id="alert"></div>
 
-        <div class="card border-light w-100 row form-green" style="width: 18rem;">
+        <div class="card border-light w-100 row card-width" th:classappend="${indexModel.getGreetingStatus().getHtmlClass()}">
+            <div class="card-body">
+                <!--<p class="h5 text-center" th:text="(${indexModel.getGreetingStatus().name()} != 'NIGHT') ?-->
+                <!--${indexModel.getGreetingStatus().getMessage() + indexModel.getProfile().getHandle()  + '!' }"></p>-->
+                <p class="h5 text-center" th:text="${#strings.replace(indexModel.getGreetingStatus().getMessage(), '%s', indexModel.getProfile().getHandle())}"></p>
+            </div>
+        </div>
+
+        <div class="card border-light w-100 row form-green card-width">
             <div class="card-body">
 
                 <th:block th:replace="fragments/index/chirick-form"></th:block>
@@ -22,7 +30,7 @@
             </div>
         </div>
 
-        <div class="card border-light w-100 row" style="width: 18rem;">
+        <div class="card border-light w-100 row card-width">
             <div class="card-body" id="content">
 
             </div>

@@ -1,5 +1,8 @@
 package com.chiricker.areas.users.controllers;
 
+import com.chiricker.areas.logger.annotations.Logger;
+import com.chiricker.areas.logger.models.entities.enums.Operation;
+import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.view.PeerSearchResultViewModel;
 import com.chiricker.areas.users.utils.FileUploader;
 import com.chiricker.controllers.BaseController;
@@ -48,6 +51,7 @@ public class UserController extends BaseController {
 
     @PostMapping("/register")
     @PreAuthorize("!isAuthenticated()")
+    @Logger(entity = User.class, operation = Operation.REGISTER)
     public ModelAndView register(@Valid @ModelAttribute("user") UserRegisterBindingModel user, BindingResult result) throws UserRoleNotFoundException {
         if (result.hasErrors()) return this.view("users/register");
         this.userService.register(user);
@@ -61,6 +65,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping(value = "/settings")
+    @Logger(entity = User.class, operation = Operation.SETTINGS_CHANGE)
     public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFoundException {
         if (result.hasErrors()) return this.view("users/settings");
         this.userService.edit(user, principal.getName());

@@ -5,6 +5,7 @@ import com.chiricker.areas.chiricks.exceptions.ChirickNotValidException;
 import com.chiricker.areas.chiricks.models.binding.CommentBindingModel;
 import com.chiricker.areas.chiricks.models.binding.LikeBindingModel;
 import com.chiricker.areas.chiricks.models.binding.RechirickBindingModel;
+import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.chiricks.models.entities.enums.TimelinePostType;
 import com.chiricker.areas.chiricks.models.service.ChirickServiceModel;
 import com.chiricker.areas.chiricks.models.view.ChirickCommentResultViewModel;
@@ -12,6 +13,8 @@ import com.chiricker.areas.chiricks.models.view.ChirickLikeResultViewModel;
 import com.chiricker.areas.chiricks.models.view.ChirickViewModel;
 import com.chiricker.areas.chiricks.models.view.RechirickResultViewModel;
 import com.chiricker.areas.chiricks.services.timeline.TimelineService;
+import com.chiricker.areas.logger.annotations.Logger;
+import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.controllers.BaseController;
 import com.chiricker.areas.chiricks.models.binding.ChirickBindingModel;
 import com.chiricker.areas.chiricks.services.chirick.ChirickService;
@@ -40,6 +43,7 @@ public class ChirickRestController extends BaseController {
     }
 
     @PostMapping(value = "/add")
+    @Logger(entity = Chirick.class, operation = Operation.CHIRICK)
     public String chirick(@Valid ChirickBindingModel chirick, BindingResult result, Principal principal) throws ChirickNotValidException, UserNotFoundException {
         if (result.hasErrors()) throw new ChirickNotValidException(result.getFieldError("chirick").getDefaultMessage());
         ChirickServiceModel serviceModel = this.chirickService.add(chirick, principal.getName());
@@ -48,6 +52,7 @@ public class ChirickRestController extends BaseController {
     }
 
     @PostMapping("/rechirick")
+    @Logger(entity = Chirick.class, operation = Operation.RECHIRICK)
     public RechirickResultViewModel rechirick(RechirickBindingModel model, Principal principal) throws UserNotFoundException, ChirickNotFoundException {
         RechirickResultViewModel resultViewModel = this.chirickService.rechirick(model, principal.getName());
         this.timelineService.updateTimeline(principal.getName(), resultViewModel.getId(), TimelinePostType.RECHIRICK, resultViewModel.isRechiricked());
@@ -55,6 +60,7 @@ public class ChirickRestController extends BaseController {
     }
 
     @PostMapping("/like")
+    @Logger(entity = Chirick.class, operation = Operation.LIKE)
     public ChirickLikeResultViewModel like(LikeBindingModel model, Principal principal) throws UserNotFoundException, ChirickNotFoundException {
         ChirickLikeResultViewModel resultViewModel = this.chirickService.like(model, principal.getName());
         this.timelineService.updateTimeline(principal.getName(), resultViewModel.getId(), TimelinePostType.LIKE, resultViewModel.isLiked());
@@ -62,6 +68,7 @@ public class ChirickRestController extends BaseController {
     }
 
     @PostMapping("/comment")
+    @Logger(entity = Chirick.class, operation = Operation.COMMENT)
     public ChirickCommentResultViewModel comment(@Valid CommentBindingModel model, BindingResult result, Principal principal) throws UserNotFoundException, ChirickNotFoundException, ChirickNotValidException {
         if (result.hasErrors()) throw new ChirickNotValidException(result.getFieldError("comment").getDefaultMessage());
         ChirickCommentResultViewModel resultViewModel = this.chirickService.comment(model, principal.getName());

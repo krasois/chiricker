@@ -1,6 +1,6 @@
 package com.chiricker.areas.users.services.user;
 
-import com.chiricker.areas.admin.models.EditUserBindingModel;
+import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
 import com.chiricker.areas.admin.models.view.UserPanelViewModel;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
@@ -9,15 +9,12 @@ import com.chiricker.areas.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.areas.users.models.entities.Role;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.binding.UserEditBindingModel;
-import com.chiricker.areas.users.models.service.RoleServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.*;
 import com.chiricker.areas.users.repositories.UserRepository;
 import com.chiricker.areas.users.services.role.RoleService;
-import com.chiricker.areas.users.utils.FileUploaderImpl;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,8 +25,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,9 +59,12 @@ public class UserServiceImpl implements UserService {
                 UserRegisterBindingModel s = context.getSource();
                 User d = context.getDestination();
 
-                d.setName(s.getName());
-                d.setHandle(s.getHandle());
-                d.setEmail(s.getEmail());
+                d.setName(HtmlUtils
+                        .htmlEscape(s.getName()));
+                d.setHandle(HtmlUtils
+                        .htmlEscape(s.getHandle()));
+                d.setEmail(HtmlUtils
+                        .htmlEscape(s.getEmail()));
                 d.setAccountNonExpired(true);
                 d.setAccountNonLocked(true);
                 d.setCredentialsNonExpired(true);
@@ -81,12 +81,15 @@ public class UserServiceImpl implements UserService {
                 UserEditBindingModel s = context.getSource();
                 User d = context.getDestination();
 
-                d.setName(s.getName());
-                d.setHandle(s.getHandle());
-                d.setEmail(s.getEmail());
+                d.setName(HtmlUtils
+                        .htmlEscape(s.getName()));
+                d.setHandle(HtmlUtils
+                        .htmlEscape(s.getHandle()));
+                d.setEmail(HtmlUtils
+                        .htmlEscape(s.getEmail()));
                 if (!s.getPassword().equals("")) d.setPassword(passwordEncoder.encode(s.getPassword()));
-                d.getProfile().setBiography(s.getBiography());
-                d.getProfile().setWebsiteUrl(s.getWebsiteUrl());
+                d.getProfile().setBiography(HtmlUtils.htmlEscape(s.getBiography()));
+                d.getProfile().setWebsiteUrl(HtmlUtils.htmlEscape(s.getWebsiteUrl()));
 
                 return d;
             }
@@ -359,12 +362,18 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.findById(id).orElse(null);
         if (user == null) throw new UserNotFoundException();
 
-        user.setName(model.getName());
-        user.setHandle(model.getHandle());
-        user.setEmail(model.getEmail());
+        user.setName(HtmlUtils
+                .htmlEscape(model.getName()));
+        user.setHandle(HtmlUtils
+                .htmlEscape(model.getHandle()));
+        user.setEmail(HtmlUtils
+                .htmlEscape(model.getEmail()));
         if (!model.getPassword().equals("")) user.setName(this.passwordEncoder.encode(model.getName()));
-        user.getProfile().setBiography(model.getProfileBiography());
-        user.getProfile().setWebsiteUrl(model.getProfileWebsiteUrl());
+
+        String escapedBio = HtmlUtils.htmlEscape(model.getProfileBiography());
+        String escapedWebsiteUlr = HtmlUtils.htmlEscape(model.getProfileWebsiteUrl());
+        user.getProfile().setBiography(escapedBio);
+        user.getProfile().setWebsiteUrl(escapedWebsiteUlr);
 
         Set<Role> authorities = new HashSet<>();
         for (String role : model.getAuthorities()) {
