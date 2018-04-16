@@ -25,6 +25,7 @@ public final class WebConstants {
     public static final int PASSWORD_MAX = 25;
     public static final int CHIRICK_MIN = 1;
     public static final int CHIRICK_MAX = 254;
+    public static final int AUTHORITIES_MIN = 1;
 
     private WebConstants() {}
 }

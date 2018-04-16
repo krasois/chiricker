@@ -5,4 +5,6 @@ import com.chiricker.areas.users.models.entities.Role;
 public interface RoleService {
 
     Role getUserRole();
+
+    Role getRoleByName(String name);
 }

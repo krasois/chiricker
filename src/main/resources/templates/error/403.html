@@ -12,13 +12,22 @@
 
     <main>
         <div class="jumbotron">
-            <div class="col col-md-12 offset-md-0 col-lg-7 offset-lg-2">
-                <th:block th:replace="${view}"></th:block>
+            <div class="col-sm-7 offset-sm-2">
+
+                <div class="card border-light mb-3 w-100" style="width: 18rem;">
+                    <div class="card-body text-center">
+                        <h1 class="card-title text-danger">403 FORBIDDEN</h1>
+                        <h2 class="card-title">You do now have the required rights to for this page.</h2>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
 
-    <footer th:include="fragments/footer"></footer>
+    <footer>
+        <div class="col-sm-7 offset-sm-2" th:include="fragments/footer"></div>
+    </footer>
 </div>
 </body>
 </html>

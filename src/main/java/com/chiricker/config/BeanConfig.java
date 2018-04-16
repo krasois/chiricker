@@ -1,7 +1,5 @@
 package com.chiricker.config;
 
-import com.chiricker.areas.users.utils.FileUploader;
-import com.chiricker.areas.users.utils.FileUploaderImpl;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import org.modelmapper.ModelMapper;
@@ -33,10 +31,5 @@ public class BeanConfig {
     @Bean
     public DbxClientV2 client() {
         return new DbxClientV2(this.config(), ACCESS_TOKEN);
-    }
-
-    @Bean
-    public FileUploader fileUploader() {
-        return new FileUploaderImpl(this.client());
     }
 }

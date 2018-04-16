@@ -10,11 +10,11 @@
         </div>
     </div>
 
-    <div class="col">
+    <div class="col col-12 col-sm-12 col-md-12 col-lg-8">
 
         <div class="mb-1 row w-100" id="alert"></div>
 
-        <div class="card border-light mb-3 w-100 row" style="width: 18rem;">
+        <div class="card border-light mb-3 w-100 row card-width">
             <div class="card-body">
 
                 <div class="row" th:object="${profile}">
@@ -34,9 +34,7 @@
             </div>
         </div>
 
-
-
-        <div class="card border-light mb-3 w-100 row" style="width: 18rem;">
+        <div class="card border-light mb-3 w-100 row card-width">
             <div class="card-body">
 
                 <ul class="nav nav-tabs" id="activityTabs">
@@ -53,14 +51,12 @@
                         <span class="nav-link" id="likesTab">Likes</span>
                     </li>
                 </ul>
-
-                <div class="d-flex justify-content-center" id="loader">
-                    <div class="loader"></div>
-                </div>
             </div>
 
             <div class="card-body" id="content">
-
+                <div class="d-flex justify-content-center" id="loader">
+                    <div class="loader"></div>
+                </div>
             </div>
 
             <div id="end"></div>

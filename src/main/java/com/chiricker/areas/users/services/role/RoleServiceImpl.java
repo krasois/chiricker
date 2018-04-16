@@ -25,4 +25,11 @@ public class RoleServiceImpl implements RoleService {
         if (role == null) return null;
         return role;
     }
+
+    @Override
+    public Role getRoleByName(String name) {
+        Role role = this.roleRepository.findByAuthority(name);
+        if (role == null) return null;
+        return role;
+    }
 }

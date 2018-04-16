@@ -1,5 +1,7 @@
 package com.chiricker.areas.users.services.user;
 
+import com.chiricker.areas.admin.models.EditUserBindingModel;
+import com.chiricker.areas.admin.models.view.UserPanelViewModel;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.binding.FollowBindingModel;
@@ -15,19 +17,24 @@ import com.chiricker.areas.users.services.role.RoleService;
 import com.chiricker.areas.users.utils.FileUploaderImpl;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Component(value = "userService")
@@ -35,17 +42,16 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleService roleService;
+
     private final ModelMapper mapper;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final FileUploaderImpl imageUploader;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, BCryptPasswordEncoder passwordEncoder, FileUploaderImpl imageUploader) {
+    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
-        this.imageUploader = imageUploader;
         this.initCustomMappings();
     }
 
@@ -155,6 +161,20 @@ public class UserServiceImpl implements UserService {
         return followerModel;
     }
 
+    private UserServiceModel disableOrEnableUserById(String id, boolean enableValue) throws UserNotFoundException {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) throw new UserNotFoundException();
+
+        user.setEnabled(enableValue);
+        this.userRepository.save(user);
+
+        return this.mapper.map(user, UserServiceModel.class);
+    }
+
+    private UserPanelViewModel mapForPanel(User user) {
+        return this.mapper.map(user, UserPanelViewModel.class);
+    }
+
     @Override
     public User getByHandle(String handle) {
         User user = this.userRepository.findByHandle(handle);
@@ -189,8 +209,6 @@ public class UserServiceImpl implements UserService {
 
         this.mapper.map(model, user);
         this.userRepository.save(user);
-
-        this.imageUploader.uploadFile(this, user.getHandle(), user.getProfile().getProfilePicUrl(), model.getProfilePicture());
 
         return this.mapper.map(user, UserServiceModel.class);
     }
@@ -243,7 +261,8 @@ public class UserServiceImpl implements UserService {
         if (user == null) throw new UserNotFoundException("User with handle " + handle + " was not found");
 
         User requester = this.userRepository.findByHandle(requesterHandle);
-        if (requester == null) throw new UserNotFoundException("User with handle " + requesterHandle + " was not found");
+        if (requester == null)
+            throw new UserNotFoundException("User with handle " + requesterHandle + " was not found");
 
         ProfileViewModel profileViewModel = this.mapper.map(user, ProfileViewModel.class);
         boolean isFollowing = requester.getFollowing().contains(user);
@@ -296,8 +315,82 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public PeerSearchResultViewModel getPeers(String query, String requesterHandle, Pageable pageable) {
+        User requester = this.userRepository.findByHandle(requesterHandle);
+        Page<User> users = this.userRepository.findAllByNameContainingOrderByHandle(query, pageable);
+        Page<FollowerViewModel> peers = users.map(u -> mapFollowerViewModel(u, requester));
+
+        PeerSearchResultViewModel result = new PeerSearchResultViewModel();
+        result.setPeers(peers);
+        result.setQuery(query);
+
+        return result;
+    }
+
+    @Override
+    public Page<UserPanelViewModel> getEnabledUsersForAdmin(Pageable pageable) {
+        Page<User> users = this.userRepository.findAllByIsEnabledTrue(pageable);
+        return users.map(this::mapForPanel);
+    }
+
+    @Override
+    public Page<UserPanelViewModel> getDisabledUsersForAdmin(Pageable pageable) {
+        Page<User> users = this.userRepository.findAllByIsEnabledFalse(pageable);
+        return users.map(this::mapForPanel);
+    }
+
+    @Override
+    public EditUserBindingModel getUserSettingsAdmin(String id) throws UserNotFoundException {
+        User user = this.userRepository.findById(id).orElse(null);
+        if (user == null) throw new UserNotFoundException();
+
+        EditUserBindingModel userModel = this.mapper.map(user, EditUserBindingModel.class);
+        userModel.setAuthorities(user
+                .getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet()));
+
+        return userModel;
+    }
+
+    @Override
+    public UserServiceModel editAdmin(String id, EditUserBindingModel model) throws UserNotFoundException {
+        User user = this.userRepository.findById(id).orElse(null);
+        if (user == null) throw new UserNotFoundException();
+
+        user.setName(model.getName());
+        user.setHandle(model.getHandle());
+        user.setEmail(model.getEmail());
+        if (!model.getPassword().equals("")) user.setName(this.passwordEncoder.encode(model.getName()));
+        user.getProfile().setBiography(model.getProfileBiography());
+        user.getProfile().setWebsiteUrl(model.getProfileWebsiteUrl());
+
+        Set<Role> authorities = new HashSet<>();
+        for (String role : model.getAuthorities()) {
+            Role authority = this.roleService.getRoleByName(role);
+            if (authority != null) authorities.add(authority);
+        }
+
+        user.setAuthorities(authorities);
+        this.userRepository.save(user);
+
+        return this.mapper.map(user, UserServiceModel.class);
+    }
+
+    @Override
+    public UserServiceModel disableUser(String id) throws UserNotFoundException {
+        return this.disableOrEnableUserById(id, false);
+    }
+
+    @Override
+    public UserServiceModel enableUser(String id) throws UserNotFoundException {
+        return this.disableOrEnableUserById(id, true);
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String handle) throws UsernameNotFoundException {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.userRepository.findByIsEnabledIsTrueAndHandle(handle);
         if (user == null) throw new UsernameNotFoundException("No user with handle: " + handle);
         return user;
     }

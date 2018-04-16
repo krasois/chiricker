@@ -17,7 +17,8 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 }
 
 .post-image-small {
-    min-width: 5rem;
+    max-width: 4rem;
+    min-width: 3rem;
     width: auto;
 }
 
@@ -25,6 +26,10 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
     max-width: 18rem;
     min-width: 10rem;
     width: auto;
+}
+
+.card-width {
+    width: 18rem;
 }
 
 .dropdown-item-name:hover {
@@ -48,6 +53,11 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 .fake-link {
     text-decoration: none;
     cursor: pointer;
+}
+
+.navbar-link {
+    background-color: transparent;
+    border: none;
 }
 
 .link-color:hover {

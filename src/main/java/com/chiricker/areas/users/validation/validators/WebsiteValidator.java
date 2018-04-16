@@ -18,8 +18,7 @@ public class WebsiteValidator implements ConstraintValidator<Website, String> {
 
     @Override
     public boolean isValid(String website, ConstraintValidatorContext constraintValidatorContext) {
-        if (nullable && website.length() < 1) return true;
-
+        if (website == null || (nullable && website.length() < 1)) return true;
         return website.matches(regexp);
     }
 }

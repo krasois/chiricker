@@ -1,6 +1,6 @@
-package com.chiricker.areas.users.validation.annotations;
+package com.chiricker.areas.admin.validation.annotations;
 
-import com.chiricker.areas.users.validation.validators.HandleExistsValidator;
+import com.chiricker.areas.admin.validation.validators.CollectionSizeValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -11,14 +11,12 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Constraint(validatedBy = HandleExistsValidator.class)
-public @interface HandleExists {
+@Constraint(validatedBy = CollectionSizeValidator.class)
+public @interface CollectionSize {
 
-    boolean isLogged() default false;
+    int min() default 0;
 
-    boolean isAdmin() default false;
-
-    String message() default "User with this handle already exists, try another one";
+    String message() default "Invalid collection size";
 
     Class<?>[] groups() default {};
 

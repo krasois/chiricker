@@ -1,5 +1,7 @@
 package com.chiricker.areas.users.controllers;
 
+import com.chiricker.areas.users.models.view.PeerSearchResultViewModel;
+import com.chiricker.areas.users.utils.FileUploader;
 import com.chiricker.controllers.BaseController;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
@@ -8,6 +10,8 @@ import com.chiricker.areas.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.areas.users.models.binding.UserEditBindingModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -21,10 +25,12 @@ import java.security.Principal;
 public class UserController extends BaseController {
 
     private final UserService userService;
+    private final FileUploader fileUploader;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FileUploader fileUploader) {
         this.userService = userService;
+        this.fileUploader = fileUploader;
     }
 
     @GetMapping("/login")
@@ -58,12 +64,18 @@ public class UserController extends BaseController {
     public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFoundException {
         if (result.hasErrors()) return this.view("users/settings");
         this.userService.edit(user, principal.getName());
+        this.fileUploader.uploadFile(user.getHandle(), user.getProfilePicture());
         return this.redirect("/@" + principal.getName());
     }
 
     @GetMapping("/@{handle}")
     public ModelAndView userProfile(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
         return this.view("users/profile/activity", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+    }
+
+    @GetMapping("/profile")
+    public ModelAndView profile(Principal principal) {
+        return this.redirect("/@" + principal.getName());
     }
 
     @GetMapping("/@{handle}/followers")
@@ -74,5 +86,11 @@ public class UserController extends BaseController {
     @GetMapping("/@{handle}/following")
     public ModelAndView following(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
         return this.view("/users/profile/following", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+    }
+
+    @GetMapping("/search")
+    public ModelAndView search(@RequestParam("query") String query, Principal principal, @PageableDefault(size = 20) Pageable pageable) {
+        PeerSearchResultViewModel result = this.userService.getPeers(query, principal.getName(), pageable);
+        return this.view("users/peers", "result", result);
     }
 }

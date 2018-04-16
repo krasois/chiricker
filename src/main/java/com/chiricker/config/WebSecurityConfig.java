@@ -36,7 +36,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                    .authorizeRequests()
+                .authorizeRequests()
                     .antMatchers("/", "/register", "/assets/**").permitAll()
                     .anyRequest().authenticated()
                 .and()
@@ -52,14 +52,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                     .rememberMe()
                     .rememberMeParameter("remember")
-                    .key("uniqueAndSecret")
-                    .rememberMeCookieName("rememberMeCookieName")
+                    .key("a31239e9-afbd-4a0f-9bac-43f532c12f55")
+                    .rememberMeCookieName("rememberMe")
                     .tokenValiditySeconds(10000)
                     .userDetailsService(this.userDetailsService);
     }
 
     @Bean
-    public RoleHierarchy roleHierarchy(){
+    public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_MODERATOR > ROLE_USER");
         return roleHierarchy;

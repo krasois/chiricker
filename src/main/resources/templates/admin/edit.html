@@ -3,15 +3,15 @@
     <div class="col col-lg-4">
         <div class="card border-light card-size mb-3">
             <div class="card-body" id="userCard" th:object="${user}">
-                <img class="img-fluid rounded-circle" alt="Profile picture" th:src="*{pictureUrl}"/>
+                <img class="img-fluid rounded-circle" alt="Profile picture" th:src="*{profilePicUrl}"/>
 
                 <h5 class="card-title" th:text="*{name}"></h5>
 
                 <h6 class="card-subtitle text-muted mb-2" th:text="*{'@' + handle}"
                     id="userCardHandle"></h6>
 
-                <p class="card-text" th:text="*{biography}"></p>
-                <a class="card-link" th:href="@{*{websiteUrl}}" th:text="*{getWebsiteUrl()}"></a>
+                <p class="card-text" th:text="*{getProfileBiography()}"></p>
+                <a class="card-link" th:href="@{*{getProfileWebsiteUrl()}}" th:text="*{getProfileWebsiteUrl()}"></a>
             </div>
         </div>
     </div>
@@ -23,21 +23,42 @@
         <div class="card border-light mb-3 w-100 card-width">
             <div class="card-body">
                 <form class="form" th:method="POST" enctype="multipart/form-data" onsubmit="return isFileValid()"
-                      th:action="@{/settings}" th:object="${user}">
+                      th:action="@{'/admin/users/edit/' + ${user.getId()}}" th:object="${user}">
                     <legend>Account Settings</legend>
                     <hr class="display-2"/>
 
                     <div th:replace="fragments//user/register-form-fields"></div>
 
+                    <fieldset class="form-group">
+                        <lable>Authorities</lable>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" th:checked="${#sets.contains(user.getAuthorities(), 'ROLE_USER')}" class="form-check-input" value="ROLE_USER" name="authorities" />
+                                User
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" th:checked="${#sets.contains(user.getAuthorities(), 'ROLE_ADMIN')}" class="form-check-input" value="ROLE_ADMIN" name="authorities" />
+                                Admin
+                            </label>
+                        </div>
+
+                        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('authorities')}">
+                            <div><small style="color: tomato" th:text="${error}"></small></div>
+                        </th:block>
+                    </fieldset>
+
                     <legend class="mt-4">Profile Settings</legend>
                     <hr class="display-2"/>
 
                     <div class="group-group mb-2" th:classappend="${#fields.hasErrors('name')} ? 'has-danger'">
-                        <label for="biography">Biography</label>
-                        <textarea class="form-control" type="text" id="biography" name="biography"
-                                  placeholder="Your story..." th:field="*{biography}"></textarea>
+                        <label for="profileBiography">Biography</label>
+                        <textarea class="form-control" type="text" id="profileBiography" name="profileBiography"
+                                  placeholder="Your story..." th:text="*{getProfileBiography()}"></textarea>
 
-                        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('biography')}">
+                        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('profileBiography')}">
                             <div>
                                 <small class="text-danger" th:text="${error}"></small>
                             </div>
@@ -45,12 +66,12 @@
                     </div>
 
                     <div class="group-group mb-2"
-                         th:classappend="${#fields.hasErrors('websiteUrl')} ? 'has-danger'">
-                        <label for="websiteUrl">Website</label>
-                        <input class="form-control" type="text" id="websiteUrl" name="websiteUrl"
-                               th:field="*{websiteUrl}"/>
+                         th:classappend="${#fields.hasErrors('profileWebsiteUrl')} ? 'has-danger'">
+                        <label for="profileWebsiteUrl">Website</label>
+                        <input class="form-control" type="text" id="profileWebsiteUrl" name="profileWebsiteUrl"
+                               th:value="*{getProfileWebsiteUrl()}"/>
 
-                        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('websiteUrl')}">
+                        <th:block th:if="${#fields.hasErrors()}" th:each="error : ${#fields.errors('profileWebsiteUrl')}">
                             <div>
                                 <small class="text-danger" th:text="${error}"></small>
                             </div>

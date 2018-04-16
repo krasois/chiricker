@@ -423,20 +423,20 @@ function follow(target) {
 function createChirickDiv(chirick, index) {
     let mainRow = $('<div class=\"row\" id="mainRow">');
 
-    let imageCol = $('<div class=\"col\">')
-        .append('<img class="img-fluid rounded-circle" alt="Profile image" src="' + chirick.userProfilePicUrl + '"/>');
+    let imageCol = $('<div class=\"col col-3 col-sm-2 col-md-2 col-lg-2\">')
+        .append('<img class="img-fluid rounded-circle post-image-small" alt="Profile image" src="' + chirick.userProfilePicUrl + '"/>');
 
-    let mainCol = $('<div class="col col-lg-10">');
+    let mainCol = $('<div class="col col-12 col-sm-10 col-md-10 col-lg-10">');
 
     let userRow = $('<div class="row" id="userRow">');
     if (chirick.parentUrl !== null) {
-        let op = $('<div class="col col-lg-10">')
+        let op = $('<div class="col col-md-9 col-lg-9">')
             .append('<a class="card-subtitle text-muted" href="' + chirick.parentUrl + '">Comment to</a>');
         userRow.append(op);
     }
 
 
-    let userCol = $('<div class="col col-lg-10">');
+    let userCol = $('<div class="col col-12 col-sm-10 col-md-9 col-lg-9">');
     let userName = $("<h5>")
         .text(chirick.userName);
     let userHandle = $('<h6 class="card-subtitle">')
@@ -445,13 +445,13 @@ function createChirickDiv(chirick, index) {
             .text('@' + chirick.userHandle));
 
     let chirickContent = $('<div class="row mt-3">')
-        .append($('<div class="col col-lg-10">')
+        .append($('<div class="col col-md-9 col-lg-9">')
             .append($('<a class="link-text" href="/@' + chirick.userHandle + '/' + chirick.id + '">')
                 .append($("<p id=\"chirick\">")
                     .text(chirick.chirick))));
 
     let actionsRow = $('<div class="row" id="actions">');
-    let actionsCol = $('<div class="col col-lg-10">');
+    let actionsCol = $('<div class="col col-md-9 col-lg-9">');
     let actionsSize = $('<h5>');
     let rechiricks = $('<span class="fake-link link-color link-color-green" title="Rechirick">')
         .text('\u21C6 ' + (chirick.rechiricksSize > 0 ? chirick.rechiricksSize : ""))
@@ -554,17 +554,16 @@ function createChirickDiv(chirick, index) {
         .append(commentModal);
 
     return mainRow;
-        // .append('<hr class="my-1 mt-3 mb-2" />');
 }
 
 function createFollowDiv(user, contentHolder) {
-    let card = $('<div class="col col-sm-12 col-md-12 col-lg-6 mb-4 w-100"><div class="card border-light h-100" ><div class="card-body"></div>');
+    let card = $('<div class="col col-12 col-sm-6 col-md-6 col-lg-6 mb-4 w-100"><div class="card border-light h-100" ><div class="card-body">');
 
     let mainCol = $('<div class="col">');
 
     let userRow = $('<div class="row">');
 
-    let userCol = $('<div class="col">');
+    let userCol = $('<div class="col mt-1">');
     let userName = $("<h5>")
         .text(user.name);
     let userHandle = $('<h6 class="card-subtitle">')
@@ -580,7 +579,7 @@ function createFollowDiv(user, contentHolder) {
                     follow(event.target);
                 });
 
-    let pictureCol = $('<div class="col">')
+    let pictureCol = $('<div class="col col-6 col-sm-6 col-md-6 col-lg-6">')
         .append($('<img class="img-fluid rounded-circle min-user-image" alt="Profile picture" src="' + user.profilePicUrl + '"/>'));
 
     let bioRow = $('<div class="row">')

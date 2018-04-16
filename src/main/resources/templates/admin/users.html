@@ -1,0 +1,45 @@
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Handle</th>
+    </tr>
+    </thead>
+    <tbody th:each="user,iter : ${users}" th:object="${user}">
+    <tr>
+        <th scope="row" th:text="${iter.index + 1}"></th>
+        <td th:text="*{getHandle()}"></td>
+        <td>
+            <a class="btn btn-success" th:href="@{'/admin/users/edit/' + *{getId()}}">Edit</a>
+            <a class="btn btn-danger" th:href="@{'/admin/users/delete/' + *{getId()}}">Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination d-flex justify-content-center" th:object="${users}">
+        <!--Previous Button-->
+        <li class="page-item"><a class="page-link" th:if="*{hasPrevious()}" th:href="@{/admin/users(page=*{previousPageable().getPageNumber()})}">Previous</a></li>
+
+        <!--Dot Button-->
+        <li class="page-item"><a class="page-link" th:if="*{getPageable().getPageNumber() + 1 > 5}" th:disabled="true">...</a></li>
+
+        <!--Pagination Navigation-->
+        <th:block th:each="number : ${#numbers.sequence(
+            ((users.getPageable().getPageNumber()
+            / 5) * 5) + 1
+            , ((users.getPageable().getPageNumber()
+            / 5) * 5) + 5)}">
+            <li class="page-item" th:if="${number <= users.getTotalPages()}" th:classappend="${number == users.getPageable().getPageNumber() + 1 ? ' active' : ''}">
+                <a class="page-link" th:text="${number}" th:href="@{/admin/users(page=${number - 1})}"></a>
+            </li>
+        </th:block>
+
+        <!--Dot Button-->
+        <li class="page-item"><a class="page-link" th:if="*{getPageable().getPageNumber() + 1 < getTotalPages() - 4}" th:disabled="true">...</a></li>
+
+        <!--Next Button-->
+        <li class="page-item"><a class="page-link" th:if="*{hasNext()}" th:href="@{/admin/users(page=*{nextPageable().getPageNumber()})}">Next</a></li>
+    </ul>
+</nav>

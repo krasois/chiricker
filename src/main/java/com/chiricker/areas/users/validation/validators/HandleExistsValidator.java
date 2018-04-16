@@ -13,6 +13,7 @@ public class HandleExistsValidator implements ConstraintValidator<HandleExists, 
     private final UserService userService;
 
     private boolean isLogged;
+    private boolean isAdmin;
 
     @Autowired
     public HandleExistsValidator(UserService userService) {
@@ -22,6 +23,7 @@ public class HandleExistsValidator implements ConstraintValidator<HandleExists, 
     @Override
     public void initialize(HandleExists constraintAnnotation) {
         this.isLogged = constraintAnnotation.isLogged();
+        this.isAdmin = constraintAnnotation.isAdmin();
     }
 
     @Override
@@ -34,6 +36,11 @@ public class HandleExistsValidator implements ConstraintValidator<HandleExists, 
         boolean isHandleUnchanged;
         String userHandle = SecurityContextHolder.getContext().getAuthentication().getName();
         isHandleUnchanged = userHandle.equals(handle);
+
+        if (isAdmin) {
+            boolean isAdminAction = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            if (!isHandleUnchanged && isAdminAction) isHandleUnchanged = true;
+        }
 
         return isHandleUnchanged || !handleExists;
     }

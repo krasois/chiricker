@@ -1,5 +1,6 @@
 package com.chiricker.areas.users.validation.annotations;
 
+import com.chiricker.areas.admin.validation.validators.PasswordsMatchValidatorAdmin;
 import com.chiricker.areas.users.validation.validators.PasswordsMatchOrIsEmptyValidator;
 import com.chiricker.areas.users.validation.validators.PasswordsMatchValidator;
 
@@ -12,7 +13,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Constraint(validatedBy = { PasswordsMatchValidator.class, PasswordsMatchOrIsEmptyValidator.class})
+@Constraint(validatedBy = { PasswordsMatchValidator.class, PasswordsMatchOrIsEmptyValidator.class, PasswordsMatchValidatorAdmin.class})
 public @interface PasswordsMatch {
 
     String message() default "Passwords do not match";
