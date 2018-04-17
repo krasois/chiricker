@@ -4,6 +4,7 @@ import com.chiricker.areas.logger.annotations.Logger;
 import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.view.PeerSearchResultViewModel;
+import com.chiricker.areas.users.models.view.ProfileViewModel;
 import com.chiricker.areas.users.utils.FileUploader;
 import com.chiricker.controllers.BaseController;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
@@ -85,12 +86,14 @@ public class UserController extends BaseController {
 
     @GetMapping("/@{handle}/followers")
     public ModelAndView followers(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
-        return this.view("/users/profile/followers", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+        ProfileViewModel profileModel = this.userService.getProfileByHandle(handle, principal.getName());
+        return this.view("/users/profile/followers", "profile", profileModel);
     }
 
     @GetMapping("/@{handle}/following")
     public ModelAndView following(@PathVariable("handle") String handle, Principal principal) throws UserNotFoundException {
-        return this.view("/users/profile/following", "profile", this.userService.getProfileByHandle(handle, principal.getName()));
+        ProfileViewModel profileModel = this.userService.getProfileByHandle(handle, principal.getName());
+        return this.view("/users/profile/following", "profile", profileModel);
     }
 
     @GetMapping("/search")

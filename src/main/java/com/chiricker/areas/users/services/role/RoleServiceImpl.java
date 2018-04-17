@@ -10,26 +10,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoleServiceImpl implements RoleService {
 
-    private static final String USER_ROLE_AUTHORITY = "ROLE_USER";
-
     private final RoleRepository roleRepository;
+    private final ModelMapper mapper;
 
     @Autowired
-    public RoleServiceImpl(RoleRepository roleRepository) {
+    public RoleServiceImpl(RoleRepository roleRepository, ModelMapper mapper) {
         this.roleRepository = roleRepository;
+        this.mapper = mapper;
     }
 
     @Override
-    public Role getUserRole() {
-        Role role = this.roleRepository.findByAuthority(USER_ROLE_AUTHORITY);
-        if (role == null) return null;
-        return role;
-    }
-
-    @Override
-    public Role getRoleByName(String name) {
+    public RoleServiceModel getRoleByName(String name) {
         Role role = this.roleRepository.findByAuthority(name);
         if (role == null) return null;
-        return role;
+        return this.mapper.map(role, RoleServiceModel.class);
     }
 }

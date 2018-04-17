@@ -36,7 +36,7 @@ public class User implements UserDetails {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST })
+    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @JoinTable(name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
         inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
@@ -63,7 +63,7 @@ public class User implements UserDetails {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = { CascadeType.ALL })
     private Set<Chirick> comments;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "rechiricks", cascade = { CascadeType.ALL })
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "rechiricks", cascade = { CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE })
     private Set<Chirick> rechiricks;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "likes", cascade = { CascadeType.ALL })

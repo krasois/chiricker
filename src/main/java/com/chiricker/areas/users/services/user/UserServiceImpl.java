@@ -9,6 +9,7 @@ import com.chiricker.areas.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.areas.users.models.entities.Role;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.binding.UserEditBindingModel;
+import com.chiricker.areas.users.models.service.RoleServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.*;
 import com.chiricker.areas.users.repositories.UserRepository;
@@ -36,6 +37,8 @@ import java.util.stream.Collectors;
 @Service
 @Component(value = "userService")
 public class UserServiceImpl implements UserService {
+
+    private static final String USER_ROLE_AUTHORITY = "ROLE_USER";
 
     private final UserRepository userRepository;
     private final RoleService roleService;
@@ -178,11 +181,17 @@ public class UserServiceImpl implements UserService {
         return this.mapper.map(user, UserPanelViewModel.class);
     }
 
+    private Role mapRoleModelToRole(String role) throws UserRoleNotFoundException {
+        RoleServiceModel userRoleModel = this.roleService.getRoleByName(role);
+        if (userRoleModel == null) throw new UserRoleNotFoundException();
+        return this.mapper.map(userRoleModel, Role.class);
+    }
+
     @Override
-    public User getByHandle(String handle) {
+    public UserServiceModel getByHandle(String handle) {
         User user = this.userRepository.findByHandle(handle);
         if (user == null) return null;
-        return user;
+        return this.mapper.map(user, UserServiceModel.class);
     }
 
     @Override
@@ -193,8 +202,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserServiceModel register(UserRegisterBindingModel model) throws UserRoleNotFoundException {
         User user = this.mapper.map(model, User.class);
-        Role userRole = this.roleService.getUserRole();
-        if (userRole == null) throw new UserRoleNotFoundException();
+        Role userRole = mapRoleModelToRole(USER_ROLE_AUTHORITY);
 
         Set<Role> roles = new HashSet<>() {{
             add(userRole);
@@ -358,7 +366,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserServiceModel editAdmin(String id, EditUserBindingModel model) throws UserNotFoundException {
+    public UserServiceModel editAdmin(String id, EditUserBindingModel model) throws UserNotFoundException, UserRoleNotFoundException {
         User user = this.userRepository.findById(id).orElse(null);
         if (user == null) throw new UserNotFoundException();
 
@@ -377,8 +385,8 @@ public class UserServiceImpl implements UserService {
 
         Set<Role> authorities = new HashSet<>();
         for (String role : model.getAuthorities()) {
-            Role authority = this.roleService.getRoleByName(role);
-            if (authority != null) authorities.add(authority);
+            Role authority = this.mapRoleModelToRole(role);
+            authorities.add(authority);
         }
 
         user.setAuthorities(authorities);

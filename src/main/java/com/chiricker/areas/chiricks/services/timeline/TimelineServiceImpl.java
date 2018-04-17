@@ -11,6 +11,7 @@ import com.chiricker.areas.chiricks.repositories.TimelineRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickService;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +45,15 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     private Chirick getChirick(String chirickId) {
-        Chirick serviceModel = this.chirickService.getById(chirickId);
+        ChirickServiceModel serviceModel = this.chirickService.getById(chirickId);
         if (serviceModel == null) return null;
-        return serviceModel;
+        return this.mapper.map(serviceModel, Chirick.class);
     }
 
     private User getUserWithHandle(String handle) throws UserNotFoundException {
-        User userModel = this.userService.getByHandle(handle);
+        UserServiceModel userModel = this.userService.getByHandle(handle);
         if (userModel == null) throw new UserNotFoundException("No user with " + handle + " was found");
-        return userModel;
+        return this.mapper.map(userModel, User.class);
     }
 
     @Override
@@ -105,12 +106,13 @@ public class TimelineServiceImpl implements TimelineService {
 
         User user = this.getUserWithHandle(userHandle);
 
-        Set<Timeline> timelines =
-                user.getFollowers()
-                        .stream()
-                        .map(User::getTimeline)
-                        .collect(Collectors.toSet());
+        Set<Timeline> timelines = user
+                .getFollowers()
+                .stream()
+                .map(User::getTimeline)
+                .collect(Collectors.toSet());
 
+        String userId = user.getId();
         for (Timeline timeline : timelines) {
             if (isAdding) {
                 TimelinePost timelinePost = new TimelinePost();
@@ -119,22 +121,21 @@ public class TimelineServiceImpl implements TimelineService {
                 timelinePost.setPostType(type);
 
                 timeline.getPosts().add(timelinePost);
+
             } else {
-                TimelinePost existingPost = timeline.getPosts()
+                timeline
+                        .getPosts()
                         .stream()
-                        .filter(p -> p.getChirick() == chirick
-                                && p.getUser() == user
+                        .filter(p -> p.getChirick().getId().equals(chirickId)
+                                && p.getUser().getId().equals(userId)
                                 && p.getPostType() == type)
                         .findFirst()
-                        .orElse(null);
+                        .ifPresent(p -> timeline.getPosts().remove(p));
 
-                if (existingPost != null) {
-                    timeline.getPosts().remove(existingPost);
-                }
             }
-        }
 
-        this.timelineRepository.saveAll(timelines);
+            this.timelineRepository.saveAndFlush(timeline);
+        }
 
         return new AsyncResult("");
     }
@@ -151,8 +152,9 @@ public class TimelineServiceImpl implements TimelineService {
         Set<TimelinePost> posts = requesterTimeline.getPosts();
         Set<TimelinePost> postsToDelete = new HashSet<>();
 
+        String userId = user.getId();
         for (TimelinePost post : posts) {
-            if (post.getUser() == user) {
+            if (post.getUser().getId().equals(userId)) {
                 postsToDelete.add(post);
             }
         }

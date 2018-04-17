@@ -1,10 +1,8 @@
 package com.chiricker.areas.users.services.role;
 
-import com.chiricker.areas.users.models.entities.Role;
+import com.chiricker.areas.users.models.service.RoleServiceModel;
 
 public interface RoleService {
 
-    Role getUserRole();
-
-    Role getRoleByName(String name);
+    RoleServiceModel getRoleByName(String name);
 }

@@ -11,6 +11,7 @@ import com.chiricker.areas.chiricks.models.view.*;
 import com.chiricker.areas.chiricks.repositories.ChirickRepository;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,38 +35,45 @@ public class ChirickServiceImpl implements ChirickService {
         this.mapper = mapper;
     }
 
-    private ChirickViewModel mapActionPropertiesForChirick(Chirick chirick, User requester) {
-            ChirickViewModel chirickModel = this.mapper.map(chirick, ChirickViewModel.class);
-            chirickModel.setRechiricksSize(chirick.getRechiricks().size());
-            chirickModel.setRechiricked(chirick.getRechiricks().contains(requester));
+    private ChirickViewModel mapActionPropertiesForChirick(Chirick chirick, String userId) {
+        ChirickViewModel chirickModel = this.mapper.map(chirick, ChirickViewModel.class);
 
-            chirickModel.setLikesSize(chirick.getLikes().size());
-            chirickModel.setLiked(chirick.getLikes().contains(requester));
+        chirickModel.setRechiricksSize(chirick.getRechiricks().size());
+        chirickModel.setLikesSize(chirick.getLikes().size());
+        chirickModel.setCommentsSize(chirick.getComments().size());
 
-            chirickModel.setCommentsSize(chirick.getComments().size());
-            chirickModel.setCommented(chirick.getComments().stream()
-                    .anyMatch(c -> c.getUser() == requester));
+        chirickModel.setRechiricked(chirick.getRechiricks()
+                .stream()
+                .anyMatch(u -> u.getId().equals(userId)));
 
-            if (chirick.getParent() != null) {
-                Chirick parent = chirick.getParent();
-                String parentUrl = "/@" + parent.getUser().getHandle() + "/" + parent.getId();
-                chirickModel.setParentUrl(parentUrl);
-            }
+        chirickModel.setLiked(chirick.getLikes()
+                .stream()
+                .anyMatch(u -> u.getId().equals(userId)));
+
+        chirickModel.setCommented(chirick.getComments()
+                .stream()
+                .anyMatch(c -> c.getUser().getId().equals(userId)));
+
+        if (chirick.getParent() != null) {
+            Chirick parent = chirick.getParent();
+            String parentUrl = "/@" + parent.getUser().getHandle() + "/" + parent.getId();
+            chirickModel.setParentUrl(parentUrl);
+        }
 
         return chirickModel;
     }
 
     private User getUserWithHandle(String handle) throws UserNotFoundException {
-        User userModel = this.userService.getByHandle(handle);
+        UserServiceModel userModel = this.userService.getByHandle(handle);
         if (userModel == null) throw new UserNotFoundException("No user with " + handle + " was found");
-        return userModel;
+        return this.mapper.map(userModel, User.class);
     }
 
     @Override
-    public Chirick getById(String chirickId) {
+    public ChirickServiceModel getById(String chirickId) {
         Chirick chirick = this.chirickRepository.findById(chirickId).orElse(null);
         if (chirick == null) return null;
-        return chirick;
+        return this.mapper.map(chirick, ChirickServiceModel.class);
     }
 
     @Override
@@ -86,13 +94,18 @@ public class ChirickServiceImpl implements ChirickService {
         User user = this.getUserWithHandle(handle);
 
         Chirick chirick = this.chirickRepository.findById(model.getId()).orElse(null);
-        if (chirick == null) throw new ChirickNotFoundException("Chirick with id '" + model.getId() + "' was not found");
+        if (chirick == null)
+            throw new ChirickNotFoundException("Chirick with id '" + model.getId() + "' was not found");
 
         RechirickResultViewModel result = new RechirickResultViewModel();
 
         Set<User> usersRechiricked = chirick.getRechiricks();
-        if (usersRechiricked.contains(user)) {
-            usersRechiricked.remove(user);
+        User userRechiricked = usersRechiricked.stream()
+                .filter(u -> u.getId().equals(user.getId()))
+                .findFirst()
+                .orElse(null);
+        if (userRechiricked != null) {
+            usersRechiricked.remove(userRechiricked);
         } else {
             usersRechiricked.add(user);
             result.setRechiricked(true);
@@ -111,13 +124,18 @@ public class ChirickServiceImpl implements ChirickService {
         User user = this.getUserWithHandle(handle);
 
         Chirick chirick = this.chirickRepository.findById(model.getId()).orElse(null);
-        if (chirick == null) throw new ChirickNotFoundException("Chirick with id '" + model.getId() + "' was not found");
+        if (chirick == null)
+            throw new ChirickNotFoundException("Chirick with id '" + model.getId() + "' was not found");
 
         ChirickLikeResultViewModel result = new ChirickLikeResultViewModel();
 
         Set<User> usersLiked = chirick.getLikes();
-        if (usersLiked.contains(user)) {
-            usersLiked.remove(user);
+        User userLiked = usersLiked.stream()
+                .filter(u -> u.getId().equals(user.getId()))
+                .findFirst()
+                .orElse(null);
+        if (userLiked != null) {
+            usersLiked.remove(userLiked);
         } else {
             usersLiked.add(user);
             result.setLiked(true);
@@ -136,7 +154,8 @@ public class ChirickServiceImpl implements ChirickService {
         User user = this.getUserWithHandle(handle);
 
         Chirick chirick = this.chirickRepository.findById(model.getId()).orElse(null);
-        if (chirick == null) throw new ChirickNotFoundException("Chirick with id '" + model.getId() + "' was not found");
+        if (chirick == null)
+            throw new ChirickNotFoundException("Chirick with id '" + model.getId() + "' was not found");
 
         ChirickCommentResultViewModel result = new ChirickCommentResultViewModel();
 
@@ -165,7 +184,7 @@ public class ChirickServiceImpl implements ChirickService {
 
         List<ChirickViewModel> chirickModels = new ArrayList<>(chiricks.size());
         for (Chirick chirick : chiricks) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester));
+            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
         }
 
         return chirickModels;
@@ -180,7 +199,7 @@ public class ChirickServiceImpl implements ChirickService {
 
         List<ChirickViewModel> chirickModels = new ArrayList<>(comments.size());
         for (Chirick chirick : comments) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester));
+            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
         }
 
         return chirickModels;
@@ -197,7 +216,7 @@ public class ChirickServiceImpl implements ChirickService {
         List<Chirick> pagedRechiricks = this.chirickRepository.getChiricksInCollection(rechiricks, pageable);
         List<ChirickViewModel> chirickModels = new ArrayList<>(pagedRechiricks.size());
         for (Chirick chirick : pagedRechiricks) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester));
+            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
         }
 
         return chirickModels;
@@ -214,7 +233,7 @@ public class ChirickServiceImpl implements ChirickService {
         List<Chirick> pagedLikes = this.chirickRepository.getChiricksInCollection(likes, pageable);
         List<ChirickViewModel> chirickModels = new ArrayList<>(pagedLikes.size());
         for (Chirick chirick : pagedLikes) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester));
+            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
         }
 
         return chirickModels;
@@ -229,7 +248,7 @@ public class ChirickServiceImpl implements ChirickService {
 
         List<ChirickViewModel> chirickModels = new ArrayList<>(comments.size());
         for (Chirick comment : comments) {
-            chirickModels.add(this.mapActionPropertiesForChirick(comment, requester));
+            chirickModels.add(this.mapActionPropertiesForChirick(comment, requester.getId()));
         }
 
         return chirickModels;
@@ -244,7 +263,7 @@ public class ChirickServiceImpl implements ChirickService {
 
         ChirickDetailsViewModel details = new ChirickDetailsViewModel();
 
-        ChirickViewModel chirickModel = this.mapActionPropertiesForChirick(chirick, requester);
+        ChirickViewModel chirickModel = this.mapActionPropertiesForChirick(chirick, requester.getId());
 
         ChirickUserViewModel userDetails = this.mapper.map(chirick.getUser(), ChirickUserViewModel.class);
         boolean isFollowing = chirick.getUser().getFollowers().contains(requester);

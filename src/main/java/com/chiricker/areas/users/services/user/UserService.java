@@ -6,7 +6,6 @@ import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.binding.FollowBindingModel;
 import com.chiricker.areas.users.models.binding.UserRegisterBindingModel;
-import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.binding.UserEditBindingModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.*;
@@ -18,7 +17,7 @@ import java.util.List;
 
 public interface UserService extends UserDetailsService{
 
-    User getByHandle(String handle);
+    UserServiceModel getByHandle(String handle);
 
     boolean handleExists(String handle);
 
@@ -50,7 +49,7 @@ public interface UserService extends UserDetailsService{
 
     EditUserBindingModel getUserSettingsAdmin(String id) throws UserNotFoundException;
 
-    UserServiceModel editAdmin(String id, EditUserBindingModel user) throws UserNotFoundException;
+    UserServiceModel editAdmin(String id, EditUserBindingModel user) throws UserNotFoundException, UserRoleNotFoundException;
 
     UserServiceModel disableUser(String id) throws UserNotFoundException;
 

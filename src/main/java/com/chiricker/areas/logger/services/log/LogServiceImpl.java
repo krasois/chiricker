@@ -5,7 +5,9 @@ import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.logger.models.service.LogServiceModel;
 import com.chiricker.areas.admin.models.view.LogViewModel;
 import com.chiricker.areas.logger.repositories.LogRepository;
+import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +38,11 @@ public class LogServiceImpl implements LogService {
     @Async
     @Override
     @Transactional
-    public LogServiceModel createLog(String handle, Operation operation, String modifiedTable) {
-        User user = null;
+    public LogServiceModel createLog(String handle, Operation operation, String modifiedTable) throws UserNotFoundException {
+        UserServiceModel user = null;
         if (handle != null) {
             user = this.userService.getByHandle(handle);
+            if (user == null) throw new UserNotFoundException();
         }
 
         String userId = user == null ? null : user.getId();

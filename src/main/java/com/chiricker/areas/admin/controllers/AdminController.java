@@ -1,12 +1,12 @@
 package com.chiricker.areas.admin.controllers;
 
 import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
-import com.chiricker.areas.admin.models.view.LogViewModel;
 import com.chiricker.areas.admin.models.view.UserPanelViewModel;
 import com.chiricker.areas.logger.annotations.Logger;
 import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.logger.services.log.LogService;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
+import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.services.user.UserService;
 import com.chiricker.areas.users.utils.FileUploader;
@@ -65,11 +65,11 @@ public class AdminController extends BaseController {
 
     @PostMapping("/users/edit/{id}")
     @Logger(entity = User.class, operation = Operation.SETTINGS_CHANGE_ADMIN)
-    public ModelAndView editUser(@PathVariable("id") String id, @Valid @ModelAttribute("user") EditUserBindingModel user, BindingResult result) throws UserNotFoundException {
+    public ModelAndView editUser(@PathVariable("id") String id, @Valid @ModelAttribute("user") EditUserBindingModel user, BindingResult result) throws UserNotFoundException, UserRoleNotFoundException {
         if (result.hasErrors()) return this.view("admin/edit");
         this.userService.editAdmin(id, user);
         this.fileUploader.uploadFile(user.getHandle(), user.getProfilePicture());
-        return this.redirect("/admin");
+        return this.redirect("/admin/users");
     }
 
     @GetMapping("/users/delete/{id}")
@@ -82,7 +82,7 @@ public class AdminController extends BaseController {
     @Logger(entity = User.class, operation = Operation.DISABLE_USER)
     public ModelAndView deactivateUser(@PathVariable("id") String id) throws UserNotFoundException {
         this.userService.disableUser(id);
-        return this.redirect("/admin");
+        return this.redirect("/admin/users");
     }
 
     @GetMapping("/users/enable/{id}")
@@ -95,6 +95,6 @@ public class AdminController extends BaseController {
     @Logger(entity = User.class, operation = Operation.ENABLE_USER)
     public ModelAndView enableUser(@PathVariable("id") String id) throws UserNotFoundException {
         this.userService.enableUser(id);
-        return this.redirect("/admin");
+        return this.redirect("/admin/users");
     }
 }

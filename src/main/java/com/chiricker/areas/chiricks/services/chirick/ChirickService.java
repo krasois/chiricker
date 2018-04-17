@@ -5,7 +5,6 @@ import com.chiricker.areas.chiricks.models.binding.ChirickBindingModel;
 import com.chiricker.areas.chiricks.models.binding.CommentBindingModel;
 import com.chiricker.areas.chiricks.models.binding.LikeBindingModel;
 import com.chiricker.areas.chiricks.models.binding.RechirickBindingModel;
-import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.chiricks.models.service.ChirickServiceModel;
 import com.chiricker.areas.chiricks.models.view.*;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
@@ -15,7 +14,7 @@ import java.util.List;
 
 public interface ChirickService {
 
-    Chirick getById(String chirickId);
+    ChirickServiceModel getById(String chirickId);
 
     ChirickServiceModel add(ChirickBindingModel bindingModel, String handle) throws UserNotFoundException;
 
