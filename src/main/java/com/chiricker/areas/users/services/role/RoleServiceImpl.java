@@ -25,4 +25,12 @@ public class RoleServiceImpl implements RoleService {
         if (role == null) return null;
         return this.mapper.map(role, RoleServiceModel.class);
     }
+
+    @Override
+    public RoleServiceModel createRole(String roleName) {
+        Role role = new Role();
+        role.setAuthority(roleName);
+        role = this.roleRepository.saveAndFlush(role);
+        return this.mapper.map(role, RoleServiceModel.class);
+    }
 }

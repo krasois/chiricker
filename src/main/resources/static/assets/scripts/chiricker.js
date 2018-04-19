@@ -89,6 +89,7 @@ function getActivityForUser(activityType) {
                 .append(createAlert("alert-danger", "Chiricks could not be loaded, refresh the page and try again."))
         },
         success: (data) => {
+            console.log(data);
             loader.remove();
 
             if (data.length < page().getMaxPerPage()) {

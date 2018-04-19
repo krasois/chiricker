@@ -4,17 +4,21 @@ import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.chiricks.models.entities.TimelinePost;
 import com.chiricker.areas.chiricks.models.entities.enums.TimelinePostType;
 import com.chiricker.areas.chiricks.models.service.ChirickServiceModel;
-import com.chiricker.areas.chiricks.models.view.ChirickViewModel;
 import com.chiricker.areas.chiricks.models.entities.Timeline;
+import com.chiricker.areas.chiricks.models.service.TimelinePostServiceModel;
+import com.chiricker.areas.chiricks.models.view.ChirickViewModel;
 import com.chiricker.areas.chiricks.models.view.TimelinePostViewModel;
+import com.chiricker.areas.chiricks.repositories.TimelinePostRepository;
 import com.chiricker.areas.chiricks.repositories.TimelineRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickService;
+import com.chiricker.areas.chiricks.services.timelinePost.TimelinePostService;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -35,13 +39,15 @@ public class TimelineServiceImpl implements TimelineService {
     private final UserService userService;
     private final ChirickService chirickService;
     private final ModelMapper mapper;
+    private final TimelinePostService timelinePostService;
 
     @Autowired
-    public TimelineServiceImpl(TimelineRepository timelineRepository, UserService userService, ChirickService chirickService, ModelMapper mapper) {
+    public TimelineServiceImpl(TimelineRepository timelineRepository, UserService userService, ChirickService chirickService, ModelMapper mapper, TimelinePostService timelinePostService) {
         this.timelineRepository = timelineRepository;
         this.userService = userService;
         this.chirickService = chirickService;
         this.mapper = mapper;
+        this.timelinePostService = timelinePostService;
     }
 
     private Chirick getChirick(String chirickId) {
@@ -56,45 +62,44 @@ public class TimelineServiceImpl implements TimelineService {
         return this.mapper.map(userModel, User.class);
     }
 
+    private TimelinePostViewModel mapPostToViewModel(TimelinePostServiceModel post, User user) {
+        TimelinePostViewModel viewModel = this.mapper.map(post, TimelinePostViewModel.class);
+
+        ChirickViewModel chirickModel = viewModel.getChirick();
+        Chirick chirick = this.mapper.map(post.getChirick(), Chirick.class);
+
+        chirickModel.setRechiricksSize(chirick.getRechiricks().size());
+        chirickModel.setRechiricked(chirick.getRechiricks().stream()
+                .anyMatch(u -> u.getId().equals(user.getId())));
+
+        chirickModel.setLikesSize(chirick.getLikes().size());
+        chirickModel.setLiked(chirick.getLikes().stream()
+                .anyMatch(u -> u.getId().equals(user.getId())));
+
+        chirickModel.setCommentsSize(chirick.getComments().size());
+        chirickModel.setCommented(chirick.getComments().stream()
+                .anyMatch(u -> u.getUser().getId().equals(user.getId())));
+
+        if (chirick.getParent() != null) {
+            Chirick parent = chirick.getParent();
+            String parentUrl = "/@" + parent.getUser().getHandle() + "/" + parent.getId();
+            chirickModel.setParentUrl(parentUrl);
+        }
+
+        return viewModel;
+    }
+
     @Override
     public List<TimelinePostViewModel> getTimelineForUser(String userHandle, Pageable pageable) throws UserNotFoundException {
         User user = this.getUserWithHandle(userHandle);
 
         Set<TimelinePost> posts = user.getTimeline().getPosts();
-        List<TimelinePost> timelinePosts = new ArrayList<>(posts);
-        timelinePosts.sort((p1, p2) -> p2.getDate().compareTo(p1.getDate()));
+        if (posts.size() < 1) return new ArrayList<>();
 
-        int startingIndex = Math.max(pageable.getPageNumber(), 0);
-        int endIndex = Math.min(pageable.getPageSize(), posts.size());
+        Page<TimelinePostViewModel> mappedPosts = this.timelinePostService.getPostsInCollection(posts, pageable)
+                .map(p -> mapPostToViewModel(p, user));
 
-        List<TimelinePostViewModel> viewModels = new ArrayList<>(pageable.getPageSize());
-        for (int i = startingIndex; i < endIndex; i++) {
-            TimelinePost timelinePost = timelinePosts.get(i);
-            TimelinePostViewModel viewModel = this.mapper.map(timelinePost, TimelinePostViewModel.class);
-
-            ChirickViewModel chirickModel = viewModel.getChirick();
-            Chirick chirick = timelinePost.getChirick();
-
-            chirickModel.setRechiricksSize(chirick.getRechiricks().size());
-            chirickModel.setRechiricked(chirick.getRechiricks().contains(user));
-
-            chirickModel.setLikesSize(chirick.getLikes().size());
-            chirickModel.setLiked(chirick.getLikes().contains(user));
-
-            chirickModel.setCommentsSize(chirick.getComments().size());
-            chirickModel.setCommented(chirick.getComments().stream()
-                    .anyMatch(c -> c.getUser() == user));
-
-            if (chirick.getParent() != null) {
-                Chirick parent = chirick.getParent();
-                String parentUrl = "/@" + parent.getUser().getHandle() + "/" + parent.getId();
-                chirickModel.setParentUrl(parentUrl);
-            }
-
-            viewModels.add(viewModel);
-        }
-
-        return viewModels;
+        return mappedPosts.getContent();
     }
 
     @Async
@@ -137,7 +142,7 @@ public class TimelineServiceImpl implements TimelineService {
             this.timelineRepository.saveAndFlush(timeline);
         }
 
-        return new AsyncResult("");
+        return new AsyncResult(timelines);
     }
 
     @Async
@@ -161,8 +166,8 @@ public class TimelineServiceImpl implements TimelineService {
 
         requesterTimeline.getPosts().removeAll(postsToDelete);
 
-        this.timelineRepository.save(requesterTimeline);
+        requesterTimeline = this.timelineRepository.save(requesterTimeline);
 
-        return new AsyncResult("");
+        return new AsyncResult(requesterTimeline);
     }
 }

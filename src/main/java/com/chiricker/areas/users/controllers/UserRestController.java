@@ -14,6 +14,8 @@ import com.chiricker.areas.users.services.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -33,15 +35,18 @@ public class UserRestController {
     }
 
     @GetMapping("/card")
-    public UserCardViewModel userCard(Principal principal) {
-        return this.userService.getUserCard(principal.getName());
+    public ResponseEntity<UserCardViewModel> userCard(Principal principal) throws UserNotFoundException {
+        UserCardViewModel model = this.userService.getUserCard(principal.getName());
+        return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @GetMapping("/navbar")
-    public UserNavbarViewModel navbar(Principal principal) {
-        return this.userService.getNavbarInfo(principal.getName());
+    public ResponseEntity<UserNavbarViewModel> navbar(Principal principal) throws UserNotFoundException {
+        UserNavbarViewModel model = this.userService.getNavbarInfo(principal.getName());
+        return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
+    @ResponseBody
     @PostMapping("/follow")
     @Logger(entity = User.class, operation = Operation.FOLLOW)
     public FollowResultViewModel follow(FollowBindingModel model, Principal principal) throws UserNotFoundException {
@@ -51,12 +56,14 @@ public class UserRestController {
     }
 
     @GetMapping("/@{handle}/followers")
-    public List<FollowerViewModel> followers(@PathVariable("handle") String handle, Principal principal, @PageableDefault(size = 20) Pageable pageable) throws UserNotFoundException {
-        return this.userService.getFollowersForUser(handle, principal.getName(), pageable);
+    public ResponseEntity<List<FollowerViewModel>> followers(@PathVariable("handle") String handle, Principal principal, @PageableDefault(size = 20) Pageable pageable) throws UserNotFoundException {
+        List<FollowerViewModel> models = this.userService.getFollowersForUser(handle, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 
     @GetMapping("/@{handle}/following")
-    public List<FollowerViewModel> following(@PathVariable("handle") String handle, Principal principal, @PageableDefault(size = 20) Pageable pageable) throws UserNotFoundException {
-        return this.userService.getFollowingForUser(handle, principal.getName(), pageable);
+    public ResponseEntity<List<FollowerViewModel>> following(@PathVariable("handle") String handle, Principal principal, @PageableDefault(size = 20) Pageable pageable) throws UserNotFoundException {
+        List<FollowerViewModel> models = this.userService.getFollowingForUser(handle, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 }

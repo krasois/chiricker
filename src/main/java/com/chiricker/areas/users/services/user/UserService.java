@@ -27,11 +27,11 @@ public interface UserService extends UserDetailsService{
 
     FollowResultViewModel follow(FollowBindingModel model, String requesterHandle) throws UserNotFoundException;
 
-    UserEditBindingModel getUserSettings(String handle);
+    UserEditBindingModel getUserSettings(String handle) throws UserNotFoundException;
 
-    UserCardViewModel getUserCard(String handle);
+    UserCardViewModel getUserCard(String handle) throws UserNotFoundException;
 
-    UserNavbarViewModel getNavbarInfo(String handle);
+    UserNavbarViewModel getNavbarInfo(String handle) throws UserNotFoundException;
 
     ProfileViewModel getProfileByHandle(String handle, String requesterHandle) throws UserNotFoundException;
 
@@ -41,7 +41,7 @@ public interface UserService extends UserDetailsService{
 
     List<FollowerViewModel> getFollowingForUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException;
 
-    PeerSearchResultViewModel getPeers(String query, String requesterHandle, Pageable pageable);
+    PeerSearchResultViewModel getPeers(String query, String requesterHandle, Pageable pageable) throws UserNotFoundException;
 
     Page<UserPanelViewModel> getEnabledUsersForAdmin(Pageable pageable);
 

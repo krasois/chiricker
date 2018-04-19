@@ -95,6 +95,6 @@ public class AdminController extends BaseController {
     @Logger(entity = User.class, operation = Operation.ENABLE_USER)
     public ModelAndView enableUser(@PathVariable("id") String id) throws UserNotFoundException {
         this.userService.enableUser(id);
-        return this.redirect("/admin/users");
+        return this.redirect("/admin/users/disabled");
     }
 }

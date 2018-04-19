@@ -16,6 +16,9 @@ public class Role implements GrantedAuthority {
     @Column(name = "authority", nullable = false, unique = true)
     private String authority;
 
+    @ManyToMany(mappedBy = "authorities", fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+    private Set<User> user;
+
     public Role() {
     }
 
@@ -34,5 +37,13 @@ public class Role implements GrantedAuthority {
 
     public void setAuthority(String authority) {
         this.authority = authority;
+    }
+
+    public Set<User> getUser() {
+        return user;
+    }
+
+    public void setUser(Set<User> user) {
+        this.user = user;
     }
 }

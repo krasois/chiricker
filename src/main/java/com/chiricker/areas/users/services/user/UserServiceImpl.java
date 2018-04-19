@@ -28,10 +28,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.annotation.PostConstruct;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,109 +50,6 @@ public class UserServiceImpl implements UserService {
         this.roleService = roleService;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
-        this.initCustomMappings();
-    }
-
-    private void initCustomMappings() {
-        Converter<UserRegisterBindingModel, User> register = new Converter<UserRegisterBindingModel, User>() {
-            @Override
-            public User convert(MappingContext<UserRegisterBindingModel, User> context) {
-                UserRegisterBindingModel s = context.getSource();
-                User d = context.getDestination();
-
-                d.setName(HtmlUtils
-                        .htmlEscape(s.getName()));
-                d.setHandle(HtmlUtils
-                        .htmlEscape(s.getHandle()));
-                d.setEmail(HtmlUtils
-                        .htmlEscape(s.getEmail()));
-                d.setAccountNonExpired(true);
-                d.setAccountNonLocked(true);
-                d.setCredentialsNonExpired(true);
-                d.setEnabled(true);
-                d.setPassword(passwordEncoder.encode(s.getPassword()));
-
-                return d;
-            }
-        };
-
-        Converter<UserEditBindingModel, User> edit = new Converter<UserEditBindingModel, User>() {
-            @Override
-            public User convert(MappingContext<UserEditBindingModel, User> context) {
-                UserEditBindingModel s = context.getSource();
-                User d = context.getDestination();
-
-                d.setName(HtmlUtils
-                        .htmlEscape(s.getName()));
-                d.setHandle(HtmlUtils
-                        .htmlEscape(s.getHandle()));
-                d.setEmail(HtmlUtils
-                        .htmlEscape(s.getEmail()));
-                if (!s.getPassword().equals("")) d.setPassword(passwordEncoder.encode(s.getPassword()));
-                d.getProfile().setBiography(HtmlUtils.htmlEscape(s.getBiography()));
-                d.getProfile().setWebsiteUrl(HtmlUtils.htmlEscape(s.getWebsiteUrl()));
-
-                return d;
-            }
-        };
-
-        Converter<User, UserEditBindingModel> userSettings = new Converter<User, UserEditBindingModel>() {
-            @Override
-            public UserEditBindingModel convert(MappingContext<User, UserEditBindingModel> context) {
-                User s = context.getSource();
-                UserEditBindingModel d = context.getDestination();
-
-                d.setName(s.getName());
-                d.setHandle(s.getHandle());
-                d.setEmail(s.getEmail());
-                d.setBiography(s.getProfile().getBiography());
-                d.setWebsiteUrl(s.getProfile().getWebsiteUrl());
-                d.setPictureUrl(s.getProfile().getProfilePicUrl());
-
-                return d;
-            }
-        };
-
-        Converter<User, UserCardViewModel> userCard = new Converter<User, UserCardViewModel>() {
-            @Override
-            public UserCardViewModel convert(MappingContext<User, UserCardViewModel> context) {
-                User s = context.getSource();
-                UserCardViewModel d = context.getDestination();
-
-                d.setName(s.getName());
-                d.setHandle(s.getHandle());
-                d.setBiography(s.getProfile().getBiography());
-                d.setWebsiteUrl(s.getProfile().getWebsiteUrl());
-                d.setProfilePicUrl(s.getProfile().getProfilePicUrl());
-
-                return d;
-            }
-        };
-
-        Converter<User, ProfileViewModel> profile = new Converter<User, ProfileViewModel>() {
-            @Override
-            public ProfileViewModel convert(MappingContext<User, ProfileViewModel> context) {
-                User s = context.getSource();
-                ProfileViewModel d = context.getDestination();
-
-                d.setHandle(s.getHandle());
-                d.setName(s.getName());
-                d.setProfileBiography(s.getProfile().getBiography());
-                d.setProfilePicUrl(s.getProfile().getProfilePicUrl());
-                d.setProfileWebsiteUrl(s.getProfile().getWebsiteUrl());
-                d.setChiricksCount(s.getChiricks().size());
-                d.setFollowersCount(s.getFollowers().size());
-                d.setFollowingCount(s.getFollowing().size());
-
-                return d;
-            }
-        };
-
-        this.mapper.addConverter(register);
-        this.mapper.addConverter(edit);
-        this.mapper.addConverter(userSettings);
-        this.mapper.addConverter(userCard);
-        this.mapper.addConverter(profile);
     }
 
     private FollowerViewModel mapFollowerViewModel(User follower, User requester) {
@@ -167,7 +62,7 @@ public class UserServiceImpl implements UserService {
         return followerModel;
     }
 
-    private UserServiceModel disableOrEnableUserById(String id, boolean enableValue) throws UserNotFoundException {
+    public UserServiceModel disableOrEnableUserById(String id, boolean enableValue) throws UserNotFoundException {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) throw new UserNotFoundException();
 
@@ -203,13 +98,18 @@ public class UserServiceImpl implements UserService {
     public UserServiceModel register(UserRegisterBindingModel model) throws UserRoleNotFoundException {
         User user = this.mapper.map(model, User.class);
         Role userRole = mapRoleModelToRole(USER_ROLE_AUTHORITY);
-
         Set<Role> roles = new HashSet<>() {{
             add(userRole);
         }};
         user.setAuthorities(roles);
 
-        this.userRepository.save(user);
+        user.setPassword(passwordEncoder.encode(model.getPassword()));
+        user.setAccountNonExpired(true);
+        user.setAccountNonLocked(true);
+        user.setCredentialsNonExpired(true);
+        user.setEnabled(true);
+
+        user = this.userRepository.save(user);
         return this.mapper.map(user, UserServiceModel.class);
     }
 
@@ -218,7 +118,17 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.findByHandle(handle);
         if (user == null) throw new UserNotFoundException("User with handle " + handle + " was not found");
 
-        this.mapper.map(model, user);
+        user.setName(model.getName());
+        user.setHandle(model.getHandle());
+        user.setEmail(model.getEmail());
+        user.getProfile().setBiography(model.getBiography());
+        user.getProfile().setWebsiteUrl(model.getWebsiteUrl());
+        if (!model.getPassword().equals("")) {
+            if (this.passwordEncoder.matches(user.getPassword(), model.getPassword())) {
+                user.setPassword(this.passwordEncoder.encode(model.getName()));
+            }
+        }
+
         this.userRepository.save(user);
 
         return this.mapper.map(user, UserServiceModel.class);
@@ -227,12 +137,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public FollowResultViewModel follow(FollowBindingModel model, String requesterHandle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(model.getHandle());
-        if (user == null) throw new UserNotFoundException("User " + model.getHandle() + "was not found");
+        if (user == null) throw new UserNotFoundException("User " + model.getHandle() + " was not found");
 
         User requester = this.userRepository.findByHandle(requesterHandle);
-        if (requester == null) throw new UserNotFoundException("User " + requesterHandle + "was not found");
+        if (requester == null) throw new UserNotFoundException("User " + requesterHandle + " was not found");
 
-        if (requester == user) throw new IllegalStateException("User cannot follow themselves");
+        if (requester == user) throw new IllegalStateException("Cannot follow yourself");
 
         FollowResultViewModel result = new FollowResultViewModel();
         Set<User> following = requester.getFollowing();
@@ -249,33 +159,59 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserEditBindingModel getUserSettings(String handle) {
+    public UserEditBindingModel getUserSettings(String handle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(handle);
-        return this.mapper.map(user, UserEditBindingModel.class);
+        if (user == null) throw new UserNotFoundException();
+
+        UserEditBindingModel userModel = new UserEditBindingModel();
+        userModel.setName(user.getName());
+        userModel.setHandle(user.getHandle());
+        userModel.setEmail(user.getEmail());
+        userModel.setBiography(user.getProfile().getBiography());
+        userModel.setWebsiteUrl(user.getProfile().getWebsiteUrl());
+        userModel.setPictureUrl(user.getProfile().getProfilePicUrl());
+        return userModel;
     }
 
     @Override
-    public UserCardViewModel getUserCard(String handle) {
+    public UserCardViewModel getUserCard(String handle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(handle);
-        return this.mapper.map(user, UserCardViewModel.class);
+        if (user == null) throw new UserNotFoundException();
+
+        UserCardViewModel cardViewModel = new UserCardViewModel();
+        cardViewModel.setName(user.getName());
+        cardViewModel.setHandle(user.getHandle());
+        cardViewModel.setBiography(user.getProfile().getBiography());
+        cardViewModel.setWebsiteUrl(user.getProfile().getWebsiteUrl());
+        cardViewModel.setProfilePicUrl(user.getProfile().getProfilePicUrl());
+        return cardViewModel;
     }
 
     @Override
-    public UserNavbarViewModel getNavbarInfo(String handle) {
+    public UserNavbarViewModel getNavbarInfo(String handle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(handle);
+        if (user == null) throw new UserNotFoundException();
         return this.mapper.map(user, UserNavbarViewModel.class);
     }
 
     @Override
     public ProfileViewModel getProfileByHandle(String handle, String requesterHandle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(handle);
-        if (user == null) throw new UserNotFoundException("User with handle " + handle + " was not found");
+        if (user == null) throw new UserNotFoundException();
 
         User requester = this.userRepository.findByHandle(requesterHandle);
-        if (requester == null)
-            throw new UserNotFoundException("User with handle " + requesterHandle + " was not found");
+        if (requester == null) throw new UserNotFoundException();
 
-        ProfileViewModel profileViewModel = this.mapper.map(user, ProfileViewModel.class);
+        ProfileViewModel profileViewModel = new ProfileViewModel();
+        profileViewModel.setHandle(user.getHandle());
+        profileViewModel.setName(user.getName());
+        profileViewModel.setProfileBiography(user.getProfile().getBiography());
+        profileViewModel.setProfilePicUrl(user.getProfile().getProfilePicUrl());
+        profileViewModel.setProfileWebsiteUrl(user.getProfile().getWebsiteUrl());
+        profileViewModel.setChiricksCount(user.getChiricks().size());
+        profileViewModel.setFollowersCount(user.getFollowers().size());
+        profileViewModel.setFollowingCount(user.getFollowing().size());
+
         boolean isFollowing = requester.getFollowing().contains(user);
         profileViewModel.setFollowing(isFollowing);
 
@@ -286,9 +222,12 @@ public class UserServiceImpl implements UserService {
     public List<FollowerViewModel> getFollowersForUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(userHandle);
         if (user == null) throw new UserNotFoundException("User with handle " + userHandle + " was not found");
-        List<User> followers = this.userRepository.findAllByFollowingContainingOrderByHandle(user, pageable);
 
         User requester = this.userRepository.findByHandle(requesterHandle);
+        if (requester == null) throw new UserNotFoundException();
+
+        List<User> followers = this.userRepository.findAllByFollowingContainingOrderByHandle(user, pageable);
+
         List<FollowerViewModel> followerModels = new ArrayList<>(followers.size());
         for (User follower : followers) {
             FollowerViewModel followerModel = this.mapFollowerViewModel(follower, requester);
@@ -302,9 +241,12 @@ public class UserServiceImpl implements UserService {
     public List<FollowerViewModel> getFollowingForUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(userHandle);
         if (user == null) throw new UserNotFoundException("User with handle " + userHandle + " was not found");
-        List<User> followers = this.userRepository.findAllByFollowersContainingOrderByHandle(user, pageable);
 
         User requester = this.userRepository.findByHandle(requesterHandle);
+        if (requester == null) throw new UserNotFoundException();
+
+        List<User> followers = this.userRepository.findAllByFollowersContainingOrderByHandle(user, pageable);
+
         List<FollowerViewModel> followerModels = new ArrayList<>(followers.size());
         for (User follower : followers) {
             FollowerViewModel followerModel = this.mapFollowerViewModel(follower, requester);
@@ -326,8 +268,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PeerSearchResultViewModel getPeers(String query, String requesterHandle, Pageable pageable) {
+    public PeerSearchResultViewModel getPeers(String query, String requesterHandle, Pageable pageable) throws UserNotFoundException {
         User requester = this.userRepository.findByHandle(requesterHandle);
+        if (requester == null) throw new UserNotFoundException();
+
         Page<User> users = this.userRepository.findAllByNameContainingOrderByHandle(query, pageable);
         Page<FollowerViewModel> peers = users.map(u -> mapFollowerViewModel(u, requester));
 
@@ -370,20 +314,24 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.findById(id).orElse(null);
         if (user == null) throw new UserNotFoundException();
 
-        user.setName(HtmlUtils
-                .htmlEscape(model.getName()));
-        user.setHandle(HtmlUtils
-                .htmlEscape(model.getHandle()));
-        user.setEmail(HtmlUtils
-                .htmlEscape(model.getEmail()));
-        if (!model.getPassword().equals("")) user.setName(this.passwordEncoder.encode(model.getName()));
-
-        String escapedBio = HtmlUtils.htmlEscape(model.getProfileBiography());
-        String escapedWebsiteUlr = HtmlUtils.htmlEscape(model.getProfileWebsiteUrl());
-        user.getProfile().setBiography(escapedBio);
-        user.getProfile().setWebsiteUrl(escapedWebsiteUlr);
+        user.setName(model.getName());
+        user.setHandle(model.getHandle());
+        user.setEmail(model.getEmail());
+        user.getProfile().setBiography(model.getProfileBiography());
+        user.getProfile().setWebsiteUrl(model.getProfileWebsiteUrl());
+        if (!model.getPassword().equals("")) {
+            if (this.passwordEncoder.matches(user.getPassword(), model.getPassword())) {
+                user.setPassword(this.passwordEncoder.encode(model.getName()));
+            }
+        }
 
         Set<Role> authorities = new HashSet<>();
+        boolean hasGodRole = user.getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_GOD"));
+        if (hasGodRole) {
+            Role godRole = this.mapRoleModelToRole("ROLE_GOD");
+            authorities.add(godRole);
+        }
+
         for (String role : model.getAuthorities()) {
             Role authority = this.mapRoleModelToRole(role);
             authorities.add(authority);
@@ -410,5 +358,46 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.findByIsEnabledIsTrueAndHandle(handle);
         if (user == null) throw new UsernameNotFoundException("No user with handle: " + handle);
         return user;
+    }
+
+    @PostConstruct
+    public void createRolesAndGodUser() {
+        String godName = "f6d67eb9_16ad_4311_958b_370a5b204a25";
+        String godPass = "f6d67eb9_16ad_4311_958b_";
+        String userRoleName = "ROLE_USER";
+        String adminRoleName = "ROLE_ADMIN";
+        String godRoleName = "ROLE_GOD";
+        User godUser = this.userRepository.findByHandle(godName);
+        if (godUser != null) return;
+
+        Role userRole;
+        Role adminRole;
+        Role godRole;
+        RoleServiceModel userRoleModel = this.roleService.getRoleByName(userRoleName);
+        RoleServiceModel adminRoleModel = this.roleService.getRoleByName(adminRoleName);
+        RoleServiceModel godRoleModel = this.roleService.getRoleByName(godRoleName);
+
+        if (userRoleModel == null) userRoleModel = this.roleService.createRole(userRoleName);
+        userRole = this.mapper.map(userRoleModel, Role.class);
+
+        if (adminRoleModel == null) adminRoleModel = this.roleService.createRole(adminRoleName);
+        adminRole = this.mapper.map(adminRoleModel, Role.class);
+
+        if (godRoleModel == null) godRoleModel = this.roleService.createRole(godRoleName);
+        godRole = this.mapper.map(godRoleModel, Role.class);
+
+        Set<Role> roles = new HashSet<>(Arrays.asList(userRole, adminRole, godRole));
+        godUser = new User();
+        godUser.setHandle(godName);
+        godUser.setName("GOD");
+        godUser.setPassword(this.passwordEncoder.encode(godPass));
+        godUser.setEmail("god@god.god");
+        godUser.setAuthorities(roles);
+        godUser.setAccountNonExpired(true);
+        godUser.setAccountNonLocked(true);
+        godUser.setEnabled(true);
+        godUser.setCredentialsNonExpired(true);
+
+        this.userRepository.save(godUser);
     }
 }

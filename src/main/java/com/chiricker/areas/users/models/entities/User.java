@@ -24,19 +24,19 @@ public class User implements UserDetails {
     )
     private String id;
 
-    @Column(name = "handle", nullable = false, unique = true)
+    @Column(name = "handle", nullable = false, unique = true, length = 40)
     private String handle;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 61)
     private String password;
 
     @Column(name = "email", nullable = false)
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
         inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))

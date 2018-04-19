@@ -60,7 +60,7 @@ public class UserController extends BaseController {
     }
 
     @GetMapping("/settings")
-    public ModelAndView settings(@ModelAttribute("user") UserEditBindingModel user, Principal principal) {
+    public ModelAndView settings(@ModelAttribute("user") UserEditBindingModel user, Principal principal) throws UserNotFoundException {
         UserEditBindingModel userDetails = this.userService.getUserSettings(principal.getName());
         return this.view("users/settings", "user", userDetails);
     }
@@ -97,7 +97,7 @@ public class UserController extends BaseController {
     }
 
     @GetMapping("/search")
-    public ModelAndView search(@RequestParam("query") String query, Principal principal, @PageableDefault(size = 20) Pageable pageable) {
+    public ModelAndView search(@RequestParam("query") String query, Principal principal, @PageableDefault(size = 20) Pageable pageable) throws UserNotFoundException {
         PeerSearchResultViewModel result = this.userService.getPeers(query, principal.getName(), pageable);
         return this.view("users/peers", "result", result);
     }

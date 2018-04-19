@@ -29,6 +29,11 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
     color: #5cb85c;
 }
 
+.nav-search-btn:hover {
+    background-color: #5cb85c;
+    color: #ffffff;
+}
+
 .post-image-small {
     max-width: 4rem;
     min-width: 3rem;

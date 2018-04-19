@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface LogService {
 
-    LogServiceModel createLog(String handle, Operation operation, String modifiedTable) throws UserNotFoundException;
+    LogServiceModel createLog(String handle, Operation operation, String modifiedTable);
 
     Page<LogViewModel> getLogs(Pageable pageable);
 }

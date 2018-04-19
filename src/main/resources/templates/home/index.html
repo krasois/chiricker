@@ -1,3 +1,9 @@
+<div class="row d-flex justify-content-center" sec:authorize="!isAuthenticated()">
+    <p class="h1 col-12 text-center">Welcome to Chiricker</p>
+    <p class="h5 col-12 text-center">The worlds best social media!</p>
+    <p class="h4 col-12 text-center"><a class="" href="/register">Register</a> now and connect with your friends!</p>
+</div>
+
 <div class="row" sec:authorize="isAuthenticated()">
 
     <div class="col col-lg-4">
@@ -14,11 +20,11 @@
 
         <div class="mb-1 w-100 row" id="alert"></div>
 
-        <div class="card border-light w-100 row card-width" th:classappend="${indexModel.getGreetingStatus().getHtmlClass()}">
+        <div class="card border-light w-100 row card-width"
+             th:classappend="${indexModel.getGreetingStatus().getHtmlClass()}">
             <div class="card-body">
-                <!--<p class="h5 text-center" th:text="(${indexModel.getGreetingStatus().name()} != 'NIGHT') ?-->
-                <!--${indexModel.getGreetingStatus().getMessage() + indexModel.getProfile().getHandle()  + '!' }"></p>-->
-                <p class="h5 text-center" th:text="${#strings.replace(indexModel.getGreetingStatus().getMessage(), '%s', indexModel.getProfile().getHandle())}"></p>
+                <p class="h5 text-center"
+                   th:text="${#strings.replace(indexModel.getGreetingStatus().getMessage(), '%s', indexModel.getProfile().getName())}"></p>
             </div>
         </div>
 

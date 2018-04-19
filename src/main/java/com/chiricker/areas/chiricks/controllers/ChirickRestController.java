@@ -22,6 +22,8 @@ import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,7 @@ public class ChirickRestController extends BaseController {
         this.timelineService = timelineService;
     }
 
+    @ResponseBody
     @PostMapping(value = "/add")
     @Logger(entity = Chirick.class, operation = Operation.CHIRICK)
     public String chirick(@Valid ChirickBindingModel chirick, BindingResult result, Principal principal) throws ChirickNotValidException, UserNotFoundException {
@@ -51,6 +54,7 @@ public class ChirickRestController extends BaseController {
         return "You chiricked successfully!";
     }
 
+    @ResponseBody
     @PostMapping("/rechirick")
     @Logger(entity = Chirick.class, operation = Operation.RECHIRICK)
     public RechirickResultViewModel rechirick(RechirickBindingModel model, Principal principal) throws UserNotFoundException, ChirickNotFoundException {
@@ -59,6 +63,7 @@ public class ChirickRestController extends BaseController {
         return resultViewModel;
     }
 
+    @ResponseBody
     @PostMapping("/like")
     @Logger(entity = Chirick.class, operation = Operation.LIKE)
     public ChirickLikeResultViewModel like(LikeBindingModel model, Principal principal) throws UserNotFoundException, ChirickNotFoundException {
@@ -67,6 +72,7 @@ public class ChirickRestController extends BaseController {
         return resultViewModel;
     }
 
+    @ResponseBody
     @PostMapping("/comment")
     @Logger(entity = Chirick.class, operation = Operation.COMMENT)
     public ChirickCommentResultViewModel comment(@Valid CommentBindingModel model, BindingResult result, Principal principal) throws UserNotFoundException, ChirickNotFoundException, ChirickNotValidException {
@@ -77,27 +83,32 @@ public class ChirickRestController extends BaseController {
     }
 
     @GetMapping("/@{handle}/chiricks")
-    public List<ChirickViewModel> getChiricksFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
-        return this.chirickService.getChiricksFromUser(handle, principal.getName(), pageable);
+    public ResponseEntity<List<ChirickViewModel>> getChiricksFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
+        List<ChirickViewModel> models = this.chirickService.getChiricksFromUser(handle, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 
     @GetMapping("/@{handle}/comments")
-    public List<ChirickViewModel> getCommentsFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
-        return this.chirickService.getCommentsFromUser(handle, principal.getName(), pageable);
+    public ResponseEntity<List<ChirickViewModel>> getCommentsFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
+        List<ChirickViewModel> models = this.chirickService.getCommentsFromUser(handle, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 
     @GetMapping("/@{handle}/rechiricks")
-    public List<ChirickViewModel> getRechiricksFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
-        return this.chirickService.getRechiricksFromUser(handle, principal.getName(), pageable);
+    public ResponseEntity<List<ChirickViewModel>> getRechiricksFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
+        List<ChirickViewModel> models = this.chirickService.getRechiricksFromUser(handle, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 
     @GetMapping("/@{handle}/likes")
-    public List<ChirickViewModel> getLikesFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
-        return this.chirickService.getLikesFromUser(handle, principal.getName(), pageable);
+    public ResponseEntity<List<ChirickViewModel>> getLikesFromUser(@PathVariable("handle") String handle, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
+        List<ChirickViewModel> models = this.chirickService.getLikesFromUser(handle, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 
     @GetMapping("/comments/{postId}")
-    public List<ChirickViewModel> getCommentsForChirick(@PathVariable("postId") String postId, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
-        return this.chirickService.getCommentsFromChirick(postId, principal.getName(), pageable);
+    public ResponseEntity<List<ChirickViewModel>> getCommentsForChirick(@PathVariable("postId") String postId, @PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
+        List<ChirickViewModel> models = this.chirickService.getCommentsFromChirick(postId, principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 }

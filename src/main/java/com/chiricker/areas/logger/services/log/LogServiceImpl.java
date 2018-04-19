@@ -38,11 +38,10 @@ public class LogServiceImpl implements LogService {
     @Async
     @Override
     @Transactional
-    public LogServiceModel createLog(String handle, Operation operation, String modifiedTable) throws UserNotFoundException {
+    public LogServiceModel createLog(String handle, Operation operation, String modifiedTable) {
         UserServiceModel user = null;
         if (handle != null) {
             user = this.userService.getByHandle(handle);
-            if (user == null) throw new UserNotFoundException();
         }
 
         String userId = user == null ? null : user.getId();

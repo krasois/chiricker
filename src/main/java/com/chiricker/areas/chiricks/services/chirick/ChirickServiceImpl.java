@@ -9,6 +9,7 @@ import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.chiricks.models.service.ChirickServiceModel;
 import com.chiricker.areas.chiricks.models.view.*;
 import com.chiricker.areas.chiricks.repositories.ChirickRepository;
+import com.chiricker.areas.chiricks.enums.ActivityType;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
@@ -17,7 +18,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.HtmlUtils;
 
 import java.util.*;
 
@@ -42,17 +42,14 @@ public class ChirickServiceImpl implements ChirickService {
         chirickModel.setLikesSize(chirick.getLikes().size());
         chirickModel.setCommentsSize(chirick.getComments().size());
 
-        chirickModel.setRechiricked(chirick.getRechiricks()
-                .stream()
+        chirickModel.setRechiricked(chirick.getRechiricks().stream()
                 .anyMatch(u -> u.getId().equals(userId)));
 
-        chirickModel.setLiked(chirick.getLikes()
-                .stream()
+        chirickModel.setLiked(chirick.getLikes().stream()
                 .anyMatch(u -> u.getId().equals(userId)));
 
-        chirickModel.setCommented(chirick.getComments()
-                .stream()
-                .anyMatch(c -> c.getUser().getId().equals(userId)));
+        chirickModel.setCommented(chirick.getComments().stream()
+                .anyMatch(u -> u.getUser().getId().equals(userId)));
 
         if (chirick.getParent() != null) {
             Chirick parent = chirick.getParent();
@@ -69,6 +66,31 @@ public class ChirickServiceImpl implements ChirickService {
         return this.mapper.map(userModel, User.class);
     }
 
+    private List<ChirickViewModel> getActivityFromUser(String userHandle, String requesterHandle, Pageable pageable, ActivityType type) throws UserNotFoundException {
+        User requester = this.getUserWithHandle(requesterHandle);
+        User user;
+        try { user = this.getUserWithHandle(userHandle); }
+        catch (UserNotFoundException e) { return new ArrayList<>(); }
+
+        List<Chirick> chiricks;
+        if (type == ActivityType.CHIRICKS) {
+            chiricks = this.chirickRepository.findAllByUserHandleAndParentIsNullOrderByDateDesc(userHandle, pageable);
+        } else if (type == ActivityType.COMMENTS) {
+            chiricks = this.chirickRepository.findAllByUserHandleAndParentIsNotNullOrderByDateDesc(userHandle, pageable);
+        } else {
+            Set<Chirick> collection = type == ActivityType.RECHIRICKS ? user.getRechiricks() : user.getLikes();
+            if (collection.size() < 1) return new ArrayList<>();
+            chiricks = this.chirickRepository.getChiricksInCollection(collection, pageable);
+        }
+
+        List<ChirickViewModel> chirickModels = new ArrayList<>(chiricks.size());
+        for (Chirick chirick : chiricks) {
+            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
+        }
+
+        return chirickModels;
+    }
+
     @Override
     public ChirickServiceModel getById(String chirickId) {
         Chirick chirick = this.chirickRepository.findById(chirickId).orElse(null);
@@ -81,7 +103,7 @@ public class ChirickServiceImpl implements ChirickService {
         User user = this.getUserWithHandle(handle);
 
         Chirick chirick = this.mapper.map(bindingModel, Chirick.class);
-        String escapedChirick = HtmlUtils.htmlEscape(chirick.getChirick());
+        String escapedChirick = chirick.getChirick();
         chirick.setChirick(escapedChirick);
         chirick.setUser(user);
         this.chirickRepository.save(chirick);
@@ -160,7 +182,7 @@ public class ChirickServiceImpl implements ChirickService {
         ChirickCommentResultViewModel result = new ChirickCommentResultViewModel();
 
         Chirick comment = new Chirick();
-        comment.setChirick(HtmlUtils.htmlEscape(model.getComment()));
+        comment.setChirick(model.getComment());
         comment.setParent(chirick);
         comment.setUser(user);
 
@@ -177,66 +199,22 @@ public class ChirickServiceImpl implements ChirickService {
 
     @Override
     public List<ChirickViewModel> getChiricksFromUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
-        User requester = this.getUserWithHandle(requesterHandle);
-
-        List<Chirick> chiricks = this.chirickRepository.findAllByUserHandleAndParentIsNullOrderByDateDesc(userHandle, pageable);
-        if (chiricks.size() < 1) return new ArrayList<>();
-
-        List<ChirickViewModel> chirickModels = new ArrayList<>(chiricks.size());
-        for (Chirick chirick : chiricks) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
-        }
-
-        return chirickModels;
+        return this.getActivityFromUser(userHandle, requesterHandle, pageable, ActivityType.CHIRICKS);
     }
 
     @Override
     public List<ChirickViewModel> getCommentsFromUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
-        User requester = this.getUserWithHandle(requesterHandle);
-
-        List<Chirick> comments = this.chirickRepository.findAllByUserHandleAndParentIsNotNullOrderByDateDesc(userHandle, pageable);
-        if (comments.size() < 1) return new ArrayList<>();
-
-        List<ChirickViewModel> chirickModels = new ArrayList<>(comments.size());
-        for (Chirick chirick : comments) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
-        }
-
-        return chirickModels;
+        return this.getActivityFromUser(userHandle, requesterHandle, pageable, ActivityType.COMMENTS);
     }
 
     @Override
     public List<ChirickViewModel> getRechiricksFromUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
-        User requester = this.getUserWithHandle(requesterHandle);
-        User user = this.getUserWithHandle(userHandle);
-
-        Set<Chirick> rechiricks = user.getRechiricks();
-        if (rechiricks.size() < 1) return new ArrayList<>();
-
-        List<Chirick> pagedRechiricks = this.chirickRepository.getChiricksInCollection(rechiricks, pageable);
-        List<ChirickViewModel> chirickModels = new ArrayList<>(pagedRechiricks.size());
-        for (Chirick chirick : pagedRechiricks) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
-        }
-
-        return chirickModels;
+        return this.getActivityFromUser(userHandle, requesterHandle, pageable, ActivityType.RECHIRICKS);
     }
 
     @Override
     public List<ChirickViewModel> getLikesFromUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
-        User requester = this.getUserWithHandle(requesterHandle);
-        User user = this.getUserWithHandle(userHandle);
-
-        Set<Chirick> likes = user.getLikes();
-        if (likes.size() < 1) return new ArrayList<>();
-
-        List<Chirick> pagedLikes = this.chirickRepository.getChiricksInCollection(likes, pageable);
-        List<ChirickViewModel> chirickModels = new ArrayList<>(pagedLikes.size());
-        for (Chirick chirick : pagedLikes) {
-            chirickModels.add(this.mapActionPropertiesForChirick(chirick, requester.getId()));
-        }
-
-        return chirickModels;
+        return this.getActivityFromUser(userHandle, requesterHandle, pageable, ActivityType.LIKES);
     }
 
     @Override

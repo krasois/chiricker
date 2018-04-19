@@ -35,7 +35,7 @@
                     <a class="nav-link" th:href="@{/register}">Register</a>
                 </li>
 
-                <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item nav-link dropdown">
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_GOD')" class="nav-item nav-link dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Admin
                     </a>

@@ -6,6 +6,8 @@ import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +25,8 @@ public class TimelineRestController {
     }
 
     @GetMapping("/timeline")
-    public List<TimelinePostViewModel> getUserNewsfeed(@PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
-        return this.timelineService.getTimelineForUser(principal.getName(), pageable);
+    public ResponseEntity<List<TimelinePostViewModel>> getUserNewsfeed(@PageableDefault(size = 15) Pageable pageable, Principal principal) throws UserNotFoundException {
+        List<TimelinePostViewModel> models = this.timelineService.getTimelineForUser(principal.getName(), pageable);
+        return new ResponseEntity<>(models, HttpStatus.OK);
     }
 }
