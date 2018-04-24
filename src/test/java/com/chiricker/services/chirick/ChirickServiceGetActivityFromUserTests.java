@@ -46,6 +46,7 @@ public class ChirickServiceGetActivityFromUserTests {
     private static final String REQUESTER_HANDLE = "pesho";
     private static final String REQUESTER_NAME = "Pesho";
     private static final String USER_ID = "whgwgwgsea53a5";
+    private static final String REQUESTER_ID = "ggrhtrhtdhhdhdhd";
     private static final String USER_PIC_URL = "243623643363y5h54eh54h45h45";
 
     @Mock
@@ -58,8 +59,8 @@ public class ChirickServiceGetActivityFromUserTests {
     @InjectMocks
     private ChirickServiceImpl chirickService;
 
-    private UserServiceModel testRequester;
     private User testUser;
+    private User testRequester;
     private Pageable pageable;
     private Chirick testChirick;
 
@@ -67,19 +68,21 @@ public class ChirickServiceGetActivityFromUserTests {
     public void setup() {
         this.pageable = Mockito.mock(Pageable.class);
 
-        this.testRequester = new UserServiceModel();
+        this.testRequester = new User();
         this.testRequester.setHandle(REQUESTER_HANDLE);
         this.testRequester.setName(REQUESTER_NAME);
-        this.testRequester.setId(USER_ID);
-        this.testRequester.setProfile(new ProfileServiceModel());
+        this.testRequester.setId(REQUESTER_ID);
+        this.testRequester.setProfile(new Profile());
         this.testRequester.getProfile().setProfilePicUrl(USER_PIC_URL);
 
         this.testUser = new User();
-        this.testUser.setHandle(REQUESTER_HANDLE);
+        this.testUser.setHandle(USER_HANDLE);
         this.testUser.setName(REQUESTER_NAME);
         this.testUser.setId(USER_ID);
         this.testUser.setProfile(new Profile());
         this.testUser.getProfile().setProfilePicUrl(USER_PIC_URL);
+        this.testUser.setRechiricks(new HashSet<>());
+        this.testUser.setLikes(new HashSet<>());
 
         this.testChirick = new Chirick() {{
             setChirick("asdawfw3awf");
@@ -87,36 +90,27 @@ public class ChirickServiceGetActivityFromUserTests {
             setRechiricks(new HashSet<>());
             setComments(new HashSet<>());
             setLikes(new HashSet<>());
-            getRechiricks().add(testUser);
-            getLikes().add(testUser);
+            getRechiricks().add(testRequester);
+            getLikes().add(testRequester);
             getComments().add(new Chirick(){{
-                    setUser(testUser);
+                setUser(testRequester);
             }});
             setParent(new Chirick() {{
                 setId("y555hy4h545h454h");
-                setUser(testUser);
+                setUser(testRequester);
             }});
         }};
+
+        this.testUser.getRechiricks().add(this.testChirick);
+        this.testUser.getLikes().add(this.testChirick);
 
         List<Chirick> testChiricks = new ArrayList<>();
         testChiricks.add(testChirick);
 
+        when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
         when(this.userService.getByHandle(this.testRequester.getHandle())).thenReturn(this.testRequester);
         when(this.chirickRepository.findAllByUserHandleAndParentIsNullOrderByDateDesc(this.testUser.getHandle(), this.pageable)).thenReturn(testChiricks);
         when(this.chirickRepository.getChiricksInCollection(any(), eq(this.pageable))).thenReturn(testChiricks);
-        when(this.mapper.map(any(UserServiceModel.class), eq(User.class))).thenAnswer(a -> {
-            UserServiceModel m = a.getArgument(0);
-            User u = new User();
-            u.setId(m.getId());
-            u.setHandle(m.getHandle());
-            u.setLikes(new HashSet<>());
-            u.setRechiricks(new HashSet<>());
-            u.setComments(new HashSet<>());
-            u.getLikes().add(this.testChirick);
-            u.getRechiricks().add(this.testChirick);
-            u.getComments().add(this.testChirick);
-            return u;
-        });
         when(this.mapper.map(any(Chirick.class), eq(ChirickViewModel.class))).thenAnswer(a -> {
             Chirick c = a.getArgument(0);
             ChirickViewModel m = new ChirickViewModel();
@@ -138,34 +132,6 @@ public class ChirickServiceGetActivityFromUserTests {
     @Test(expected = UserNotFoundException.class)
     public void testGetActivity_WithInvalidUserHandle_ShouldThrow() throws UserNotFoundException {
         this.chirickService.getCommentsFromChirick(USER_HANDLE, "grwg4w44wg4gw", this.pageable);
-    }
-
-    @Test
-    public void testGetChiricks_WithInvalidUserHandle_ShouldReturnEmptyArrayList() throws UserNotFoundException {
-        List<ChirickViewModel> resultList = this.chirickService.getChiricksFromUser("wgeaswg3g3g", this.testUser.getHandle(), this.pageable);
-
-        assertTrue("Result list size should be 0.", resultList.size() == 0);
-    }
-
-    @Test
-    public void testGetComments_WithInvalidUserHandle_ShouldReturnEmptyArrayList() throws UserNotFoundException {
-        List<ChirickViewModel> resultList = this.chirickService.getCommentsFromChirick("wgeaswg3g3g", this.testUser.getHandle(), this.pageable);
-
-        assertTrue("Result list size should be 0.", resultList.size() == 0);
-    }
-
-    @Test
-    public void testGetRechiricks_WithInvalidUserHandle_ShouldReturnEmptyArrayList() throws UserNotFoundException {
-        List<ChirickViewModel> resultList = this.chirickService.getRechiricksFromUser("wgeaswg3g3g", this.testUser.getHandle(), this.pageable);
-
-        assertTrue("Result list size should be 0.", resultList.size() == 0);
-    }
-
-    @Test
-    public void testGetLike_WithInvalidUserHandle_ShouldReturnEmptyArrayList() throws UserNotFoundException {
-        List<ChirickViewModel> resultList = this.chirickService.getLikesFromUser("wgeaswg3g3g", this.testUser.getHandle(), this.pageable);
-
-        assertTrue("Result list size should be 0.", resultList.size() == 0);
     }
 
     @Test
@@ -207,9 +173,9 @@ public class ChirickServiceGetActivityFromUserTests {
     }
 
     private void testMappedViewModel(ChirickViewModel model) {
-        assertEquals("User handle was not mapped correctly.", model.getUserHandle(), this.testRequester.getHandle());
-        assertEquals("User name was not mapped correctly.", model.getUserName(), this.testRequester.getName());
-        assertEquals("User profile pic was not mapped correctly.", model.getUserProfilePicUrl(), this.testRequester.getProfile().getProfilePicUrl());
+        assertEquals("User handle was not mapped correctly.", model.getUserHandle(), this.testUser.getHandle());
+        assertEquals("User name was not mapped correctly.", model.getUserName(), this.testUser.getName());
+        assertEquals("User profile pic was not mapped correctly.", model.getUserProfilePicUrl(), this.testUser.getProfile().getProfilePicUrl());
         assertEquals("Chirick id was not mapped correctly.", model.getId(), this.testChirick.getId());
         assertEquals("Chirick was not mapped correctly.", model.getChirick(), this.testChirick.getChirick());
         assertTrue("Parent URL was not mapped correctly.", model.getParentUrl()

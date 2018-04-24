@@ -16,12 +16,12 @@ public class ScheduledGreetingTasks {
         this.greeting = greeting;
     }
 
-    @Scheduled(cron = "0 */10 6-9 * * *")
+    @Scheduled(cron = "0 */10 6-10 * * *")
     public void morning() {
         this.greeting.setGreetingStatus(GreetingStatus.MORNING);
     }
 
-    @Scheduled(cron = "0 */10 10-13 * * *")
+    @Scheduled(cron = "0 */10 11-13 * * *")
     public void noon() {
         this.greeting.setGreetingStatus(GreetingStatus.NOON);
     }

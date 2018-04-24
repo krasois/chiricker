@@ -8,6 +8,11 @@ public class UserNavbarViewModel {
 
     private String profilePicUrl;
 
+    private long notificationsCount;
+
+    public UserNavbarViewModel() {
+    }
+
     public String getName() {
         return name;
     }
@@ -30,5 +35,13 @@ public class UserNavbarViewModel {
 
     public void setProfilePicUrl(String profilePicUrl) {
         this.profilePicUrl = profilePicUrl;
+    }
+
+    public long getNotificationsCount() {
+        return notificationsCount;
+    }
+
+    public void setNotificationsCount(long notificationsCount) {
+        this.notificationsCount = notificationsCount;
     }
 }

@@ -14,9 +14,8 @@ import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.*;
 import com.chiricker.areas.users.repositories.UserRepository;
 import com.chiricker.areas.users.services.role.RoleService;
-import org.modelmapper.Converter;
+import com.chiricker.util.mapper.CustomMapper;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.HtmlUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -42,13 +40,15 @@ public class UserServiceImpl implements UserService {
     private final RoleService roleService;
 
     private final ModelMapper mapper;
+    private final CustomMapper customMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, CustomMapper customMapper, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.mapper = mapper;
+        this.customMapper = customMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
         return followerModel;
     }
 
-    public UserServiceModel disableOrEnableUserById(String id, boolean enableValue) throws UserNotFoundException {
+    private UserServiceModel disableOrEnableUserById(String id, boolean enableValue) throws UserNotFoundException {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) throw new UserNotFoundException();
 
@@ -83,10 +83,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserServiceModel getByHandle(String handle) {
+    public User getByHandle(String handle) {
         User user = this.userRepository.findByHandle(handle);
         if (user == null) return null;
-        return this.mapper.map(user, UserServiceModel.class);
+        return user;
     }
 
     @Override
@@ -191,12 +191,18 @@ public class UserServiceImpl implements UserService {
     public UserNavbarViewModel getNavbarInfo(String handle) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(handle);
         if (user == null) throw new UserNotFoundException();
-        return this.mapper.map(user, UserNavbarViewModel.class);
+        UserNavbarViewModel viewModel = this.mapper.map(user, UserNavbarViewModel.class);
+        long notificationsCount = user.getNotifications()
+                .stream()
+                .filter(n -> !n.isChecked())
+                .count();
+        viewModel.setNotificationsCount(notificationsCount);
+        return viewModel;
     }
 
     @Override
     public ProfileViewModel getProfileByHandle(String handle, String requesterHandle) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.userRepository.findByIsEnabledIsTrueAndHandle(handle);
         if (user == null) throw new UserNotFoundException();
 
         User requester = this.userRepository.findByHandle(requesterHandle);

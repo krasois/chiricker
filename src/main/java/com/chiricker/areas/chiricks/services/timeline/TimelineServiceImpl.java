@@ -8,14 +8,12 @@ import com.chiricker.areas.chiricks.models.entities.Timeline;
 import com.chiricker.areas.chiricks.models.service.TimelinePostServiceModel;
 import com.chiricker.areas.chiricks.models.view.ChirickViewModel;
 import com.chiricker.areas.chiricks.models.view.TimelinePostViewModel;
-import com.chiricker.areas.chiricks.repositories.TimelinePostRepository;
 import com.chiricker.areas.chiricks.repositories.TimelineRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickService;
 import com.chiricker.areas.chiricks.services.timelinePost.TimelinePostService;
-import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
-import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
+import com.chiricker.util.linker.UserLinker;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,10 +23,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -38,8 +33,8 @@ public class TimelineServiceImpl implements TimelineService {
     private final TimelineRepository timelineRepository;
     private final UserService userService;
     private final ChirickService chirickService;
-    private final ModelMapper mapper;
     private final TimelinePostService timelinePostService;
+    private final ModelMapper mapper;
 
     @Autowired
     public TimelineServiceImpl(TimelineRepository timelineRepository, UserService userService, ChirickService chirickService, ModelMapper mapper, TimelinePostService timelinePostService) {
@@ -56,17 +51,26 @@ public class TimelineServiceImpl implements TimelineService {
         return this.mapper.map(serviceModel, Chirick.class);
     }
 
-    private User getUserWithHandle(String handle) throws UserNotFoundException {
-        UserServiceModel userModel = this.userService.getByHandle(handle);
-        if (userModel == null) throw new UserNotFoundException("No user with " + handle + " was found");
-        return this.mapper.map(userModel, User.class);
+    private User getUserWithHandle(String handle) {
+        return this.userService.getByHandle(handle);
     }
 
-    private TimelinePostViewModel mapPostToViewModel(TimelinePostServiceModel post, User user) {
-        TimelinePostViewModel viewModel = this.mapper.map(post, TimelinePostViewModel.class);
+    private TimelinePostViewModel mapPostToViewModel(TimelinePost post, User user) {
+        TimelinePostViewModel viewModel = new TimelinePostViewModel();
+        viewModel.setPosterHandle(post.getFrom().getHandle());
+        viewModel.setPostTypeValue(post.getPostType().getValue());
 
-        ChirickViewModel chirickModel = viewModel.getChirick();
-        Chirick chirick = this.mapper.map(post.getChirick(), Chirick.class);
+        User originalPoster = post.getChirick().getUser();
+        ChirickViewModel chirickModel = new ChirickViewModel();
+        chirickModel.setUserName(originalPoster.getName());
+        chirickModel.setUserHandle(originalPoster.getHandle());
+        chirickModel.setUserProfilePicUrl(originalPoster.getProfile().getProfilePicUrl());
+
+        chirickModel.setId(post.getChirick().getId());
+        chirickModel.setChirick(UserLinker.linkUsers(
+                post.getChirick().getChirick()));
+
+        Chirick chirick = post.getChirick();
 
         chirickModel.setRechiricksSize(chirick.getRechiricks().size());
         chirickModel.setRechiricked(chirick.getRechiricks().stream()
@@ -86,88 +90,79 @@ public class TimelineServiceImpl implements TimelineService {
             chirickModel.setParentUrl(parentUrl);
         }
 
+        viewModel.setChirick(chirickModel);
         return viewModel;
     }
 
+    private void addToTimeline(Timeline timeline, Chirick chirick, User user, TimelinePostType type) {
+        TimelinePostServiceModel postModel = this.timelinePostService.createPost(timeline, chirick, user, type);
+        TimelinePost timelinePost = new TimelinePost();
+        timelinePost.setId(postModel.getId());
+        timelinePost.setDate(postModel.getDate());
+        timelinePost.setPostType(postModel.getPostType());
+        timelinePost.setTimeline(this.mapper.map(postModel.getTimeline(), Timeline.class));
+        timelinePost.setChirick(this.mapper.map(postModel.getChirick(), Chirick.class));
+        timelinePost.setTo(this.mapper.map(postModel.getTo(), User.class));
+        timelinePost.setFrom(this.mapper.map(postModel.getFrom(), User.class));
+        timeline.getPosts().add(timelinePost);
+    }
+
+    private void removeFromTimeline(Timeline timeline, Chirick chirick, User user, TimelinePostType type) {
+        String postId = this.timelinePostService.getPostIdByFields(timeline, chirick, user, type);
+        if (postId == null) return;
+        List<TimelinePost> toRemove = timeline.getPosts().stream()
+                .filter(p -> p.getId().equals(postId))
+                .collect(Collectors.toList());
+
+        timeline.getPosts().removeAll(toRemove);
+        this.timelinePostService.deletePosts(toRemove);
+    }
+
     @Override
-    public List<TimelinePostViewModel> getTimelineForUser(String userHandle, Pageable pageable) throws UserNotFoundException {
+    public List<TimelinePostViewModel> getTimelineForUser(String userHandle, Pageable pageable) {
         User user = this.getUserWithHandle(userHandle);
 
-        Set<TimelinePost> posts = user.getTimeline().getPosts();
-        if (posts.size() < 1) return new ArrayList<>();
+        if (user.getTimeline().getPosts().size() < 1) return new ArrayList<>();
+        Timeline timeline = this.mapper.map(user.getTimeline(), Timeline.class);
+        Page<TimelinePost> posts = this.timelinePostService.getPostsFromTimeline(timeline, pageable);
 
-        Page<TimelinePostViewModel> mappedPosts = this.timelinePostService.getPostsInCollection(posts, pageable)
-                .map(p -> mapPostToViewModel(p, user));
-
-        return mappedPosts.getContent();
+        Page<TimelinePostViewModel> map = posts.map(p -> mapPostToViewModel(p, user));
+        return map.getContent();
     }
 
     @Async
     @Override
     @Transactional
-    public Future updateTimeline(String userHandle, String chirickId, TimelinePostType type, boolean isAdding) throws UserNotFoundException {
+    public Future updateTimeline(String userHandle, String chirickId, TimelinePostType type, boolean isAdding) {
         Chirick chirick = this.getChirick(chirickId);
         if (chirick == null) return null;
 
         User user = this.getUserWithHandle(userHandle);
+        if (user == null) return null;
 
-        Set<Timeline> timelines = user
-                .getFollowers()
-                .stream()
+        Set<Timeline> timelines = user.getFollowers().stream()
                 .map(User::getTimeline)
                 .collect(Collectors.toSet());
 
-        String userId = user.getId();
         for (Timeline timeline : timelines) {
             if (isAdding) {
-                TimelinePost timelinePost = new TimelinePost();
-                timelinePost.setChirick(chirick);
-                timelinePost.setUser(user);
-                timelinePost.setPostType(type);
-
-                timeline.getPosts().add(timelinePost);
-
+                this.addToTimeline(timeline, chirick, user, type);
+                this.timelineRepository.saveAndFlush(timeline);
             } else {
-                timeline
-                        .getPosts()
-                        .stream()
-                        .filter(p -> p.getChirick().getId().equals(chirickId)
-                                && p.getUser().getId().equals(userId)
-                                && p.getPostType() == type)
-                        .findFirst()
-                        .ifPresent(p -> timeline.getPosts().remove(p));
-
+                this.removeFromTimeline(timeline, chirick, user, type);
             }
-
-            this.timelineRepository.saveAndFlush(timeline);
         }
 
-        return new AsyncResult(timelines);
+        return new AsyncResult<>(timelines);
     }
 
     @Async
     @Override
     @Transactional
-    public Future unfollow(String userHandle, String requesterHandle) throws UserNotFoundException {
-        User user = this.getUserWithHandle(userHandle);
-        User requester = this.getUserWithHandle(requesterHandle);
+    public Future unfollow(String userHandle, String requesterHandle) {
+        List<TimelinePost> deletedTimelinePosts = this.timelinePostService.deletePostsFromUserToUser(userHandle, requesterHandle);
+        if (deletedTimelinePosts == null) return null;
 
-        Timeline requesterTimeline = requester.getTimeline();
-
-        Set<TimelinePost> posts = requesterTimeline.getPosts();
-        Set<TimelinePost> postsToDelete = new HashSet<>();
-
-        String userId = user.getId();
-        for (TimelinePost post : posts) {
-            if (post.getUser().getId().equals(userId)) {
-                postsToDelete.add(post);
-            }
-        }
-
-        requesterTimeline.getPosts().removeAll(postsToDelete);
-
-        requesterTimeline = this.timelineRepository.save(requesterTimeline);
-
-        return new AsyncResult(requesterTimeline);
+        return new AsyncResult<>(deletedTimelinePosts);
     }
 }

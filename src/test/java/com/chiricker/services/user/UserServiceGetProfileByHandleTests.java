@@ -61,7 +61,7 @@ public class UserServiceGetProfileByHandleTests {
         this.requester.setHandle("pesho");
         this.requester.setFollowing(new HashSet<>());
 
-        when(this.userRepository.findByHandle(this.user.getHandle())).thenReturn(this.user);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.user.getHandle())).thenReturn(this.user);
         when(this.userRepository.findByHandle(this.requester.getHandle())).thenReturn(this.requester);
     }
 

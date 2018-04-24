@@ -20,7 +20,10 @@ public class TimelinePost {
     private String id;
 
     @ManyToOne
-    private User user;
+    private User from;
+
+    @ManyToOne
+    private User to;
 
     @ManyToOne
     private Chirick chirick;
@@ -29,8 +32,11 @@ public class TimelinePost {
     private Date date;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, updatable = false)
+    @Column(name = "type")
     private TimelinePostType postType;
+
+    @ManyToOne
+    private Timeline timeline;
 
     public TimelinePost() {
     }
@@ -48,12 +54,20 @@ public class TimelinePost {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public User getFrom() {
+        return from;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setFrom(User from) {
+        this.from = from;
+    }
+
+    public User getTo() {
+        return to;
+    }
+
+    public void setTo(User to) {
+        this.to = to;
     }
 
     public Chirick getChirick() {
@@ -78,5 +92,13 @@ public class TimelinePost {
 
     public void setPostType(TimelinePostType postType) {
         this.postType = postType;
+    }
+
+    public Timeline getTimeline() {
+        return timeline;
+    }
+
+    public void setTimeline(Timeline timeline) {
+        this.timeline = timeline;
     }
 }

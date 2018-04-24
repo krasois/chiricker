@@ -9,13 +9,17 @@ public class TimelinePostServiceModel {
 
     private String id;
 
-    private UserServiceModel user;
+    private UserServiceModel from;
+
+    private UserServiceModel to;
 
     private ChirickServiceModel chirick;
 
     private Date date;
 
     private TimelinePostType postType;
+
+    private TimelineServiceModel timeline;
 
     public TimelinePostServiceModel() {
     }
@@ -28,12 +32,20 @@ public class TimelinePostServiceModel {
         this.id = id;
     }
 
-    public UserServiceModel getUser() {
-        return user;
+    public UserServiceModel getFrom() {
+        return from;
     }
 
-    public void setUser(UserServiceModel user) {
-        this.user = user;
+    public void setFrom(UserServiceModel from) {
+        this.from = from;
+    }
+
+    public UserServiceModel getTo() {
+        return to;
+    }
+
+    public void setTo(UserServiceModel to) {
+        this.to = to;
     }
 
     public ChirickServiceModel getChirick() {
@@ -58,5 +70,13 @@ public class TimelinePostServiceModel {
 
     public void setPostType(TimelinePostType postType) {
         this.postType = postType;
+    }
+
+    public TimelineServiceModel getTimeline() {
+        return timeline;
+    }
+
+    public void setTimeline(TimelineServiceModel timeline) {
+        this.timeline = timeline;
     }
 }

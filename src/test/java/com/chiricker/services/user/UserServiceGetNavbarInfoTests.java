@@ -18,6 +18,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.HashSet;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +52,7 @@ public class UserServiceGetNavbarInfoTests {
         this.userTest.setName("Pesho");
         this.userTest.setProfile(new Profile());
         this.userTest.getProfile().setProfilePicUrl("default");
+        this.userTest.setNotifications(new HashSet<>());
 
         when(this.userRepository.findByHandle(this.userTest.getHandle())).thenReturn(this.userTest);
         when(this.mapper.map(any(), eq(UserNavbarViewModel.class))).thenAnswer(m -> {

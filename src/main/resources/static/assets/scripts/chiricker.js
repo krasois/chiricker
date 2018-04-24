@@ -8,6 +8,10 @@ function getUserProfileInfo() {
             $("#profileName").text(data.name);
             $("#profileHandle").text("@" + data.handle);
             $("#profileLink").attr("href", "/@" + data.handle);
+            if (data.notificationsCount > 0) {
+                $('#notifications')
+                    .append('<span class="button__badge" id="notificationCount">' + data.notificationsCount + '</span>')
+            }
         }
     });
 }
@@ -35,7 +39,8 @@ function setChirickToggling() {
 function sendChirick() {
     let token = $("meta[name='_csrf']").attr("content");
     let headerName = $("meta[name='_csrf_headerName']").attr("content");
-    let chirick = $("#chirickField").val();
+    let chirickField = $("#chirickField");
+    let chirick = chirickField.val();
 
     let headers = {};
     headers[headerName] = token;
@@ -49,20 +54,14 @@ function sendChirick() {
         url: '/chirick/add',
         data: data,
         headers: headers,
-        success: function (message) {
-            $('#alert').append(createAlert("alert-success", message));
+        success: function () {
+            chirickField.val("");
+            showNoty('success', 'Successfully chiricked!')
         },
-        error: function (data) {
-            $('#alert').append(createAlert("alert-danger", data.responseText));
+        error: () => {
+            showNoty('error', 'Could not chirick. Try again.');
         }
     });
-}
-
-function createAlert(alertColorClass, message) {
-    return $("<div class=\"alert alert-dismissible fade show\" role=\"alert\">").addClass(alertColorClass)
-        .append(message)
-        .append("</div>")
-        .append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>");
 }
 
 
@@ -85,8 +84,7 @@ function getActivityForUser(activityType) {
         url: '/chirick/' + handle + '/' + activityType + '?page=' + page().getNext(),
         error: () => {
             loader.remove();
-            $('#alert')
-                .append(createAlert("alert-danger", "Chiricks could not be loaded, refresh the page and try again."))
+            showNoty('error', activityType.substr(0, 1).toUpperCase() + activityType.substr(1) + ' could not be loaded, refresh the page and try again.');
         },
         success: (data) => {
             console.log(data);
@@ -138,8 +136,7 @@ function getRelationshipsForUser(relationshipType) {
         },
         error: () => {
             loader.remove();
-            $('#alert')
-                .append(createAlert("alert-danger", "Followers could not be loaded, refresh the page and try again."))
+            showNoty('error', 'Followers could not be loaded, refresh the page and try again.');
         }
     });
 }
@@ -193,8 +190,7 @@ function getCommentsForPost() {
         },
         error: () => {
             loader.remove();
-            $('#alert')
-                .prepend(createAlert("alert-danger", "Comments could not be loaded, refresh the page and try again."))
+            showNoty('error', 'Comments could not be loaded, refresh the page and try again.');
         }
     });
 }
@@ -223,8 +219,7 @@ function getTimeline() {
         url: '/timeline?page=' + page().getNext(),
         error: () => {
             loader.remove();
-            $('#alert')
-                .append(createAlert("alert-danger", "Chiricks could not be loaded, refresh the page and try again."))
+            showNoty('error', 'Chiricks could not be loaded, refresh the page and try again.');
         },
         success: (data) => {
             loader.remove();
@@ -244,7 +239,8 @@ function getTimeline() {
                 let userRow = div.find('#userRow');
                 if (timelinePost.postTypeValue !== '') {
                     let activity = $('<div class="col col-lg-10">')
-                        .append('<small class="card-subtitle text-muted">@' + timelinePost.userHandle + " " + timelinePost.postTypeValue + '</small>');
+                        .append('<small class="card-subtitle text-muted"><a class="text-muted" href="@' + timelinePost.posterHandle + '">' +
+                            '@' + timelinePost.posterHandle + "</a> " + timelinePost.postTypeValue + '</small>');
                     $(userRow).prepend(activity);
                 }
             }
@@ -288,8 +284,8 @@ function rechirick(target, idSelector) {
                 element.removeClass("link-color-green-active");
             }
         },
-        error: (error) => {
-            $('#alert').append(createAlert("alert-danger", error.message));
+        error: () => {
+            showNoty('error', 'Could not rechirick. Try again.');
         }
     });
 }
@@ -329,9 +325,8 @@ function like(target, idSelector) {
                 element.removeClass("link-color-red-active");
             }
         },
-        error: (error) => {
-            $('#alert').append(
-                createAlert("alert-danger", error.responseText));
+        error: () => {
+            showNoty('error', 'Could not like. Try again.');
         }
     });
 }
@@ -340,7 +335,8 @@ function comment(target) {
     let form = $("div.row form").has($(target));
     form = $(form[form.length - 1]);
 
-    let commentContent = form.find('textarea').val();
+    let textarea = form.find('textarea');
+    let commentContent = textarea.val();
     let chirickId = $(target).attr("data-id");
 
     let token = $('meta[name="_csrf"]').attr("content");
@@ -361,7 +357,6 @@ function comment(target) {
         data: data,
         headers: headers,
         success: (result) => {
-            let contentHolder = $("#content");
             let mainDiv = $(form).parent().parent().parent().parent().parent().parent().parent();
             let commentIcon = $(mainDiv)
                 .find(".link-color-blue");
@@ -370,11 +365,11 @@ function comment(target) {
                 .addClass("link-color-blue-active")
                 .text("\uD83D\uDCAC " + (result.commentsSize > 0 ? result.commentsSize : ""));
 
-            contentHolder.prepend(createAlert("alert-success", "Successfully commented!"))
+            textarea.val("");
+            showNoty('success', 'Successfully commented!');
         },
-        error: (error) => {
-            let errorMessage = error.responseText;
-            $('#alert').append(createAlert("alert-danger", errorMessage));
+        error: () => {
+            showNoty('error', 'Could not comment. Try again.');
         }
     });
 }
@@ -399,11 +394,6 @@ function follow(target) {
         url: '/user/follow',
         data: data,
         headers: headers,
-        error: () => {
-            let contentHolder = $('#alert');
-            contentHolder
-                .append(createAlert("alert-danger", "Could not follow user! Please try again!"));
-        },
         success: (result) => {
             if (result.unfollowed) {
                 targetElement
@@ -416,6 +406,9 @@ function follow(target) {
                     .removeClass('btn-outline-success')
                     .text('Following');
             }
+        },
+        error: () => {
+            showNoty('error', 'Could not follow. Try again.');
         }
     });
 }
@@ -431,7 +424,7 @@ function createChirickDiv(chirick, index) {
 
     let userRow = $('<div class="row" id="userRow">');
     if (chirick.parentUrl !== null) {
-        let op = $('<div class="col col-md-9 col-lg-9">')
+        let op = $('<div class="col col-sm-10 col-md-10 col-lg-10">')
             .append('<a class="card-subtitle text-muted" href="' + chirick.parentUrl + '">Comment to</a>');
         userRow.append(op);
     }
@@ -449,7 +442,7 @@ function createChirickDiv(chirick, index) {
         .append($('<div class="col col-md-9 col-lg-9">')
             .append($('<a class="link-text" href="/@' + chirick.userHandle + '/' + chirick.id + '">')
                 .append($("<p id=\"chirick\">")
-                    .text(chirick.chirick))));
+                    .html(chirick.chirick))));
 
     let actionsRow = $('<div class="row" id="actions">');
     let actionsCol = $('<div class="col col-md-9 col-lg-9">');
@@ -716,4 +709,13 @@ function isFileValid() {
     }
 
     return false;
+}
+
+function showNoty(type, message) {
+    new Noty({
+        theme: 'bootstrap-v4',
+        type: type,
+        text: message,
+        timeout: 1500
+    }).show();
 }

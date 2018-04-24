@@ -5,7 +5,7 @@ import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.view.PeerSearchResultViewModel;
 import com.chiricker.areas.users.models.view.ProfileViewModel;
-import com.chiricker.areas.users.utils.FileUploader;
+import com.chiricker.util.uploader.FileUploader;
 import com.chiricker.controllers.BaseController;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;

@@ -35,9 +35,9 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 }
 
 .post-image-small {
-    max-width: 4rem;
+    width: 5rem;
     min-width: 3rem;
-    width: auto;
+    height: auto;
 }
 
 .card-size {
@@ -133,8 +133,8 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
     border: 7px solid #f3f3f3; /* Light grey */
     border-top: 7px solid #3498db; /* Blue */
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 35px;
+    height: 35px;
     animation: spin 2s linear infinite;
 }
 
@@ -174,4 +174,22 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 
 .greeting-night {
     background-color: rgba(122, 5, 255, 0.29);
+}
+
+.button__badge {
+    background-color: #5cb85c;
+    border-radius: 2px;
+    color: white;
+
+    padding: 1px 3px;
+    font-size: 10px;
+
+    position: absolute; /* Position the badge within the relatively positioned button */
+    top: 0;
+    /*right: 0;*/
+}
+
+.button-c {
+    color: white;
+    position: relative; /* All 'absolute'ly positioned elements are relative to this one */
 }

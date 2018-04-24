@@ -39,7 +39,7 @@ public class LogServiceImpl implements LogService {
     @Override
     @Transactional
     public LogServiceModel createLog(String handle, Operation operation, String modifiedTable) {
-        UserServiceModel user = null;
+        User user = null;
         if (handle != null) {
             user = this.userService.getByHandle(handle);
         }

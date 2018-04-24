@@ -44,7 +44,6 @@ public class ChirickRestController extends BaseController {
         this.timelineService = timelineService;
     }
 
-    @ResponseBody
     @PostMapping(value = "/add")
     @Logger(entity = Chirick.class, operation = Operation.CHIRICK)
     public String chirick(@Valid ChirickBindingModel chirick, BindingResult result, Principal principal) throws ChirickNotValidException, UserNotFoundException {

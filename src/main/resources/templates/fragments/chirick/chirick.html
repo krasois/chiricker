@@ -17,13 +17,13 @@
         </div>
 
         <div class="row mt-3">
-            <p class="col col-lg-11" th:text="*{getChirick()}"></p>
+            <p class="col col-lg-11" th:utext="*{getChirick()}"></p>
         </div>
 
         <div class="row">
             <div class="col col-lg-10 mb-2">
                 <h6 class="card-subtitle text-muted mt-1"
-                    th:text="${#dates.format(details.getDate(), 'HH:mm dd-MMM-yyyy')}"></h6>
+                    th:text="${#dates.format(details.getDate(), 'HH:mm dd MMM yyyy')}"></h6>
             </div>
         </div>
 

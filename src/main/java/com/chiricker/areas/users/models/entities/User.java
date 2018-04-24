@@ -82,9 +82,12 @@ public class User implements UserDetails {
     @JoinColumn(name = "profile_id")
     private Profile profile;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "timeline_id")
     private Timeline timeline;
+
+    @OneToMany(mappedBy = "notified")
+    private Set<Notification> notifications;
 
     public User() {
     }
@@ -256,5 +259,13 @@ public class User implements UserDetails {
 
     public void setTimeline(Timeline timeline) {
         this.timeline = timeline;
+    }
+
+    public Set<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(Set<Notification> notifications) {
+        this.notifications = notifications;
     }
 }

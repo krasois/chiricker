@@ -21,7 +21,7 @@ public class Timeline {
     @OneToOne(mappedBy = "timeline", cascade = { CascadeType.MERGE, CascadeType.PERSIST })
     private User user;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST }, orphanRemoval = true)
+    @OneToMany(mappedBy = "timeline", orphanRemoval = true)
     private Set<TimelinePost> posts;
 
     public Timeline() {

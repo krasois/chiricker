@@ -4,7 +4,7 @@ public class TimelinePostViewModel {
 
     private String postTypeValue;
 
-    private String userHandle;
+    private String posterHandle;
 
     private ChirickViewModel chirick;
 
@@ -19,12 +19,12 @@ public class TimelinePostViewModel {
         this.postTypeValue = postTypeValue;
     }
 
-    public String getUserHandle() {
-        return userHandle;
+    public String getPosterHandle() {
+        return posterHandle;
     }
 
-    public void setUserHandle(String userHandle) {
-        this.userHandle = userHandle;
+    public void setPosterHandle(String posterHandle) {
+        this.posterHandle = posterHandle;
     }
 
     public ChirickViewModel getChirick() {

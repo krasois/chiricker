@@ -12,8 +12,14 @@
              id="navbarSupportedContent">
 
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item nav-link disabled">
+                <li class="nav-item">
                     <a class="nav-link" href="/">Home</a>
+                </li>
+
+                <li class="nav-item mr-3">
+                    <a class="nav-link button-c" id="notifications" href="/notifications">
+                        Notifications
+                    </a>
                 </li>
             </ul>
 
@@ -36,7 +42,8 @@
                 </li>
 
                 <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_GOD')" class="nav-item nav-link dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link" href="#" id="adminDropdown" role="button" data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
                         Admin
                     </a>
                     <div class="dropdown-menu" aria-labelledby="adminDropdown">
@@ -50,7 +57,8 @@
                 <li sec:authorize="isAuthenticated()" class="nav-link nav-item mr-sm-2">
                     <form th:action="@{/search}">
                         <div class="input-group">
-                            <input class="form-control form-control-sm form-rounded" type="search" name="query" placeholder="Search for peers"/>
+                            <input class="form-control form-control-sm form-rounded" type="search" name="query"
+                                   placeholder="Search for peers"/>
                             <span class="input-group-btn">
                                 <button class="btn nav-search-btn" type="submit">&#x1f50d;</button>
                             </span>
@@ -77,6 +85,7 @@
                     <th:block th:replace="fragments/user/nav-profile"></th:block>
                 </li>
             </ul>
+
         </div>
     </nav>
 </th:block>

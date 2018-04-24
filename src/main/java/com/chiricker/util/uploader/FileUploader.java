@@ -1,4 +1,4 @@
-package com.chiricker.areas.users.utils;
+package com.chiricker.util.uploader;
 
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import org.springframework.web.multipart.MultipartFile;

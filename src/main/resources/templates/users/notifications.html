@@ -1,0 +1,15 @@
+<div class="row justify-content-between">
+
+    <div class="col col-12 col-sm-12 col-md-12 col-lg-5" th:each="notification : ${notifications}" th:object="${notification}">
+
+        <div class="card border-light mb-3 w-100 card-width" >
+            <div class="card-header form-green row">
+                <a class="mr-2" th:href="@{'/@' + *{getUserHandle()}}" th:text="*{getUserName()}"></a>
+                <div th:text="'mentioned you'"></div>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" th:utext="*{getChirickContent()}"></li>
+            </ul>
+        </div>
+    </div>
+</div>

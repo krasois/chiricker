@@ -9,6 +9,7 @@ import com.chiricker.areas.chiricks.services.chirick.ChirickServiceImpl;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
+import com.chiricker.areas.users.services.notification.NotificationService;
 import com.chiricker.areas.users.services.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,17 +41,19 @@ public class ChirickServiceCommenTests {
     private UserService userService;
     @Mock
     private ModelMapper mapper;
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private ChirickServiceImpl chirickService;
 
     private CommentBindingModel testModel;
     private Chirick testChirick;
-    private UserServiceModel testUser;
+    private User testUser;
 
     @Before
     public void setup() {
-        this.testUser = new UserServiceModel();
+        this.testUser = new User();
         this.testUser.setId("g54h54h3gh3g5");
         this.testUser.setHandle("pesho");
 
@@ -67,13 +70,6 @@ public class ChirickServiceCommenTests {
         when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
         when(this.chirickRepository.findById(this.testModel.getId())).thenReturn(Optional.of(this.testChirick));
         when(this.chirickRepository.save(any())).thenAnswer(a -> a.getArgument(0));
-        when(this.mapper.map(any(UserServiceModel.class), eq(User.class))).thenAnswer(a -> {
-            UserServiceModel m = a.getArgument(0);
-            User u = new User();
-            u.setId(m.getId());
-            u.setHandle(m.getHandle());
-            return u;
-        });
     }
 
     @Test(expected = UserNotFoundException.class)

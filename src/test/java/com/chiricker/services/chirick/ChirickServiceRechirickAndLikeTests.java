@@ -47,7 +47,7 @@ public class ChirickServiceRechirickAndLikeTests {
     @InjectMocks
     private ChirickServiceImpl chirickService;
 
-    private UserServiceModel testUser;
+    private User testUser;
     private RechirickBindingModel testRechirickModel;
     private LikeBindingModel testLikeModel;
     private Chirick testChirick;
@@ -60,7 +60,7 @@ public class ChirickServiceRechirickAndLikeTests {
         this.testLikeModel = new LikeBindingModel();
         this.testLikeModel.setId("rewgeg3eawfw33");
 
-        this.testUser = new UserServiceModel();
+        this.testUser = new User();
         this.testUser.setId("rgweaeg24wgw");
         this.testUser.setHandle("pesho");
 
@@ -74,13 +74,6 @@ public class ChirickServiceRechirickAndLikeTests {
 
         when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
         when(this.chirickRepository.findById(this.testRechirickModel.getId())).thenReturn(Optional.of(this.testChirick));
-        when(this.mapper.map(any(UserServiceModel.class), eq(User.class))).thenAnswer(a -> {
-            UserServiceModel m = a.getArgument(0);
-            User u = new User();
-            u.setId(m.getId());
-            u.setHandle(m.getHandle());
-            return u;
-        });
     }
 
     @Test

@@ -1,8 +1,7 @@
-package com.chiricker.areas.users.utils;
+package com.chiricker.util.uploader;
 
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
-import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
@@ -45,7 +44,7 @@ public class FileUploaderImpl implements FileUploader {
     public Future uploadFile(String userHandle, MultipartFile profilePicture) throws UserNotFoundException {
         String result = DEFAULT_RESULT;
 
-        UserServiceModel user = this.userService.getByHandle(userHandle);
+        User user = this.userService.getByHandle(userHandle);
         if (user == null) throw new UserNotFoundException();
 
         String currentProfilePicUrl = user.getProfile().getProfilePicUrl();
@@ -73,8 +72,6 @@ public class FileUploaderImpl implements FileUploader {
 
             } catch (IOException | DbxException e) {
                 System.out.println(e.getMessage());
-            } catch (UserNotFoundException e) {
-                e.printStackTrace();
             }
 
             if (!currentProfilePicUrl.equals(DEFAULT_PROFILE_PICTURE_URL)) {
@@ -88,6 +85,6 @@ public class FileUploaderImpl implements FileUploader {
             }
         }
 
-        return new AsyncResult(result);
+        return new AsyncResult<>(result);
     }
 }

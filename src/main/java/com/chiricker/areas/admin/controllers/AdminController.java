@@ -9,7 +9,7 @@ import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.services.user.UserService;
-import com.chiricker.areas.users.utils.FileUploader;
+import com.chiricker.util.uploader.FileUploader;
 import com.chiricker.controllers.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

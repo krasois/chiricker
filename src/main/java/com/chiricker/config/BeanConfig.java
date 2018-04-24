@@ -2,6 +2,7 @@ package com.chiricker.config;
 
 import com.chiricker.areas.home.utils.greeting.Greeting;
 import com.chiricker.areas.home.utils.greeting.GreetingFactory;
+import com.chiricker.util.mapper.CustomMapper;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import org.modelmapper.ModelMapper;
@@ -43,5 +44,10 @@ public class BeanConfig {
     @Bean
     public Greeting greeting() throws Exception {
         return this.greetingFactory().getObject();
+    }
+
+    @Bean
+    public CustomMapper customModelMapper() {
+        return new CustomMapper(this.modelMapper());
     }
 }

@@ -7,6 +7,7 @@ import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.binding.FollowBindingModel;
 import com.chiricker.areas.users.models.binding.UserRegisterBindingModel;
 import com.chiricker.areas.users.models.binding.UserEditBindingModel;
+import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.*;
 import org.springframework.data.domain.Page;
@@ -15,9 +16,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 
-public interface UserService extends UserDetailsService{
+public interface UserService extends UserDetailsService {
 
-    UserServiceModel getByHandle(String handle);
+    User getByHandle(String handle);
 
     boolean handleExists(String handle);
 
@@ -42,6 +43,8 @@ public interface UserService extends UserDetailsService{
     List<FollowerViewModel> getFollowingForUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException;
 
     PeerSearchResultViewModel getPeers(String query, String requesterHandle, Pageable pageable) throws UserNotFoundException;
+
+
 
     Page<UserPanelViewModel> getEnabledUsersForAdmin(Pageable pageable);
 

@@ -8,6 +8,7 @@ import com.chiricker.areas.chiricks.services.chirick.ChirickServiceImpl;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
+import com.chiricker.areas.users.services.notification.NotificationService;
 import com.chiricker.areas.users.services.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,11 +37,13 @@ public class ChirickServiceAddTests {
     private UserService userService;
     @Mock
     private ModelMapper mapper;
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private ChirickServiceImpl chirickService;
 
-    private UserServiceModel testUser;
+    private User testUser;
     private ChirickBindingModel testModel;
 
     @Before
@@ -48,7 +51,7 @@ public class ChirickServiceAddTests {
         this.testModel = new ChirickBindingModel();
         this.testModel.setChirick("some chriick");
 
-        this.testUser = new UserServiceModel();
+        this.testUser = new User();
         this.testUser.setId("rgweaeg24wgw");
         this.testUser.setHandle("pesho");
 
@@ -59,14 +62,6 @@ public class ChirickServiceAddTests {
             Chirick c = new Chirick();
             c.setChirick(m.getChirick());
             return c;
-        });
-        when(this.mapper.map(any(UserServiceModel.class), eq(User.class))).thenAnswer(a -> {
-            UserServiceModel m = a.getArgument(0);
-            User user = new User();
-            user.setHandle(m.getHandle());
-            user.setId(m.getId());
-
-            return user;
         });
         when(this.mapper.map(any(Chirick.class), eq(ChirickServiceModel.class))).thenAnswer(a -> {
             Chirick c = a.getArgument(0);
@@ -88,7 +83,7 @@ public class ChirickServiceAddTests {
     }
 
     @Test(expected = UserNotFoundException.class)
-    public void testAddChirick_WithInvalidHandle_ShouldThrow() throws UserNotFoundException {
+    public void testAddChirick_WithInvalidHandle_ShouldReturnNull() throws UserNotFoundException {
         this.chirickService.add(this.testModel, "asdadasdasd");
     }
 

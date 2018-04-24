@@ -83,63 +83,25 @@ public class UserServiceGetByHandleTests {
             setId("557-44774-sdsdg");
             setUser(user);
         }});
-
-        Mockito.when(mapper.map(ArgumentMatchers.any(), ArgumentMatchers.eq(UserServiceModel.class))).thenAnswer(r -> {
-            User dbUser = r.getArgument(0);
-            UserServiceModel model = new UserServiceModel();
-
-            Set<RoleServiceModel> mappedAuthorities = new HashSet<>() {{
-                add(new RoleServiceModel() {{
-                    setId(userRole.getId());
-                    setAuthority(userRole.getAuthority());
-                }});
-            }};
-            ProfileServiceModel mappedProfile = new ProfileServiceModel() {{
-                setId(dbUser.getProfile().getId());
-                setBiography(dbUser.getProfile().getBiography());
-                setProfilePicUrl(dbUser.getProfile().getProfilePicUrl());
-                setWebsiteUrl(dbUser.getProfile().getWebsiteUrl());
-            }};
-            TimelineServiceModel mappedTimeline = new TimelineServiceModel() {{
-                setId(dbUser.getTimeline().getId());
-                setUser(model);
-                setPosts(new HashSet<>());
-            }};
-
-            model.setId(dbUser.getId());
-            model.setHandle(dbUser.getHandle());
-            model.setName(dbUser.getName());
-            model.setEmail(dbUser.getEmail());
-            model.setPassword(dbUser.getPassword());
-            model.setAuthorities(mappedAuthorities);
-            model.setRegisteredOn(dbUser.getRegisteredOn());
-            model.setEnabled(dbUser.isEnabled());
-            model.setAccountNonExpired(dbUser.isAccountNonExpired());
-            model.setAccountNonLocked(dbUser.isAccountNonLocked());
-            model.setCredentialsNonExpired(dbUser.isCredentialsNonExpired());
-            model.setProfile(mappedProfile);
-            model.setTimeline(mappedTimeline);
-            return model;
-        });
     }
 
     @Test
     public void testGetByHandle_WithValidHandle_ShouldNotReturnNull() {
-        UserServiceModel userModel = this.userService.getByHandle("pesho");
+        User userModel = this.userService.getByHandle("pesho");
 
         Assert.assertNotEquals("User model should not be null.", null, userModel);
     }
 
     @Test
     public void testGetByHandle_WithInvalidHandle_ShouldReturnNull() {
-        UserServiceModel userModel = this.userService.getByHandle("gosho");
+        User userModel = this.userService.getByHandle("gosho");
 
         Assert.assertEquals("User model should not be null.", null, userModel);
     }
 
     @Test
     public void testGetByHandle_WithValidHandle_ShouldMapFieldsCorrectly() {
-        UserServiceModel userModel = this.userService.getByHandle("pesho");
+        User userModel = this.userService.getByHandle("pesho");
 
         Assert.assertEquals("User Id is not mapped correctly.", this.user.getId(), userModel.getId());
         Assert.assertEquals("User handle is not mapped correctly.", this.user.getHandle(), userModel.getHandle());

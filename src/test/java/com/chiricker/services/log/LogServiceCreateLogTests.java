@@ -5,6 +5,7 @@ import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.logger.models.service.LogServiceModel;
 import com.chiricker.areas.logger.repositories.LogRepository;
 import com.chiricker.areas.logger.services.log.LogServiceImpl;
+import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.junit.Before;
@@ -42,15 +43,11 @@ public class LogServiceCreateLogTests {
     @InjectMocks
     private LogServiceImpl logService;
 
-    private UserServiceModel user;
-    private Pageable pageable;
-    private LogServiceModel testLogModel;
+    private User user;
 
     @Before
     public void setup() {
-        this.pageable = Mockito.mock(Pageable.class);
-
-        this.user = new UserServiceModel();
+        this.user = new User();
         this.user.setId("asdsadadasdasd");
 
         when(this.userService.getByHandle(user.getId())).thenReturn(user);
