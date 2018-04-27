@@ -3,9 +3,10 @@ package com.chiricker.areas.users.controllers;
 import com.chiricker.areas.logger.annotations.Logger;
 import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.PeerSearchResultViewModel;
 import com.chiricker.areas.users.models.view.ProfileViewModel;
-import com.chiricker.util.uploader.FileUploader;
+import com.chiricker.util.uploader.FileManager;
 import com.chiricker.controllers.BaseController;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
@@ -24,17 +25,18 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.concurrent.ExecutionException;
 
 @Controller
 public class UserController extends BaseController {
 
     private final UserService userService;
-    private final FileUploader fileUploader;
+    private final FileManager fileManager;
 
     @Autowired
-    public UserController(UserService userService, FileUploader fileUploader) {
+    public UserController(UserService userService, FileManager fileManager) {
         this.userService = userService;
-        this.fileUploader = fileUploader;
+        this.fileManager = fileManager;
     }
 
     @GetMapping("/login")
@@ -69,8 +71,8 @@ public class UserController extends BaseController {
     @Logger(entity = User.class, operation = Operation.SETTINGS_CHANGE)
     public ModelAndView settings(@Valid @ModelAttribute("user") UserEditBindingModel user, BindingResult result, Principal principal) throws UserNotFoundException {
         if (result.hasErrors()) return this.view("users/settings");
-        this.userService.edit(user, principal.getName());
-        this.fileUploader.uploadFile(user.getHandle(), user.getProfilePicture());
+        UserServiceModel resultModel = this.userService.edit(user, principal.getName());
+        this.fileManager.updateProfilePicture(user.getHandle(), resultModel.getProfile().getProfilePicUrl(), user.getProfilePicture());
         return this.redirect("/@" + principal.getName());
     }
 

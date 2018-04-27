@@ -3,10 +3,12 @@ package com.chiricker.areas.users.services.notification;
 import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.users.models.entities.Notification;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.view.NotificationViewModel;
 import com.chiricker.areas.users.repositories.NotificationRepository;
 import com.chiricker.areas.users.services.user.UserService;
 import com.chiricker.util.linker.UserLinker;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -31,11 +33,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserService userService;
+    private final ModelMapper mapper;
 
     @Autowired
-    public NotificationServiceImpl(NotificationRepository notificationRepository, UserService userService) {
+    public NotificationServiceImpl(NotificationRepository notificationRepository, UserService userService, ModelMapper mapper) {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
+        this.mapper = mapper;
     }
 
     private Set<String> extractHandles(String content) {
@@ -55,11 +59,18 @@ public class NotificationServiceImpl implements NotificationService {
 
         String chirickContent = UserLinker.linkUsers(notification.getChirick().getChirick());
         model.setChirickContent(chirickContent);
+        model.setChirickId(notification.getChirick().getId());
 
         model.setUserHandle(notification.getChirick().getUser().getHandle());
         model.setUserName(notification.getChirick().getUser().getName());
 
         return model;
+    }
+
+    private User getUserWithHandle(String handle) {
+        SimpleUserServiceModel userModel = this.userService.getByHandleSimple(handle);
+        if (userModel == null) return null;
+        return this.mapper.map(userModel, User.class);
     }
 
     @Override
@@ -79,7 +90,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         Set<Notification> notifications = new HashSet<>();
         for (String handle : handles) {
-            User user = this.userService.getByHandle(handle);
+            User user = this.getUserWithHandle(handle);
             if (user == null || user.getId().equals(chirick.getUser().getId())) continue;
 
             Notification notification = new Notification();

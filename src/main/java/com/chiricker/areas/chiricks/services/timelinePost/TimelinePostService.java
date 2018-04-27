@@ -5,6 +5,7 @@ import com.chiricker.areas.chiricks.models.entities.Timeline;
 import com.chiricker.areas.chiricks.models.entities.TimelinePost;
 import com.chiricker.areas.chiricks.models.entities.enums.TimelinePostType;
 import com.chiricker.areas.chiricks.models.service.TimelinePostServiceModel;
+import com.chiricker.areas.chiricks.models.service.TimelineUserServiceModel;
 import com.chiricker.areas.users.models.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,13 +14,13 @@ import java.util.List;
 
 public interface TimelinePostService {
 
-    TimelinePostServiceModel createPost(Timeline timeline, Chirick chirick, User user, TimelinePostType type);
+    TimelinePostServiceModel createPost(TimelineUserServiceModel timeline, Chirick chirick, User from, TimelinePostType type);
 
-    Page<TimelinePost> getPostsFromTimeline(Timeline timeline, Pageable pageable);
+    Page<TimelinePostServiceModel> getPostsFromTimeline(String timelineId, Pageable pageable);
 
-    String getPostIdByFields(Timeline timeline, Chirick chirick, User user, TimelinePostType type);
+    String getPostIdByFields(TimelineUserServiceModel timeline, Chirick chirick, User user, TimelinePostType type);
 
     void deletePosts(List<TimelinePost> posts);
 
-    List<TimelinePost> deletePostsFromUserToUser(String userHandle, String requesterHandle);
+    List<TimelinePostServiceModel> deletePostsFromUserToUser(String userHandle, String requesterHandle);
 }

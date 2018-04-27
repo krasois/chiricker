@@ -42,7 +42,7 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 
 .card-size {
     max-width: 18rem;
-    min-width: 10rem;
+    min-width: 3rem;
     width: auto;
 }
 
@@ -178,7 +178,7 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 
 .button__badge {
     background-color: #5cb85c;
-    border-radius: 2px;
+    border-radius: 2rem;
     color: white;
 
     padding: 1px 3px;
@@ -186,7 +186,6 @@ a[href], input[type='submit'], input[type='image'], label[for], select, button, 
 
     position: absolute; /* Position the badge within the relatively positioned button */
     top: 0;
-    /*right: 0;*/
 }
 
 .button-c {

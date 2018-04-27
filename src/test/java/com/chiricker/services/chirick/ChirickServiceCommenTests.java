@@ -8,6 +8,7 @@ import com.chiricker.areas.chiricks.repositories.ChirickRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickServiceImpl;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.notification.NotificationService;
 import com.chiricker.areas.users.services.user.UserService;
@@ -67,7 +68,8 @@ public class ChirickServiceCommenTests {
         this.testModel.setComment("comment");
         this.testModel.setId("ewhnthh53h543h5");
 
-        when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
+        when(this.userService.getByHandleSimple(this.testUser.getHandle())).thenReturn(new SimpleUserServiceModel());
+        when(this.mapper.map(any(SimpleUserServiceModel.class), eq(User.class))).thenReturn(this.testUser);
         when(this.chirickRepository.findById(this.testModel.getId())).thenReturn(Optional.of(this.testChirick));
         when(this.chirickRepository.save(any())).thenAnswer(a -> a.getArgument(0));
     }
@@ -81,13 +83,6 @@ public class ChirickServiceCommenTests {
     public void testComment_WithInvalidChirickId_ShouldThrowChirickNotFound() throws UserNotFoundException, ChirickNotFoundException {
         this.testModel.setId("3334343135ggh");
         this.chirickService.comment(this.testModel, this.testUser.getHandle());
-    }
-
-    @Test
-    public void testComment_WithValidData_ShouldReturnCorrectCommentSize() throws UserNotFoundException, ChirickNotFoundException {
-        ChirickCommentResultViewModel model = this.chirickService.comment(this.testModel, this.testUser.getHandle());
-
-        assertTrue("Comments size is not correct, is should be 4.", model.getCommentsSize() == 4);
     }
 
     @Test

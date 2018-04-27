@@ -9,4 +9,6 @@ import java.util.List;
 
 @Repository
 public interface TimelineRepository extends JpaRepository<Timeline, String> {
+
+    Timeline findByUserId(String id);
 }

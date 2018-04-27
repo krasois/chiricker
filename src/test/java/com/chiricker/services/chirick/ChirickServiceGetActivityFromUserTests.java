@@ -8,6 +8,7 @@ import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.Profile;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.ProfileServiceModel;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.junit.Before;
@@ -107,10 +108,12 @@ public class ChirickServiceGetActivityFromUserTests {
         List<Chirick> testChiricks = new ArrayList<>();
         testChiricks.add(testChirick);
 
-        when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
-        when(this.userService.getByHandle(this.testRequester.getHandle())).thenReturn(this.testRequester);
+        when(this.userService.getByHandleSimple(eq(this.testRequester.getHandle()))).thenReturn(new SimpleUserServiceModel());
+        when(this.userService.getByHandleModel(eq(this.testUser.getHandle()))).thenReturn(new UserServiceModel());
         when(this.chirickRepository.findAllByUserHandleAndParentIsNullOrderByDateDesc(this.testUser.getHandle(), this.pageable)).thenReturn(testChiricks);
         when(this.chirickRepository.getChiricksInCollection(any(), eq(this.pageable))).thenReturn(testChiricks);
+        when(this.mapper.map(any(SimpleUserServiceModel.class), eq(User.class))).thenReturn(this.testRequester);
+        when(this.mapper.map(any(UserServiceModel.class), eq(User.class))).thenReturn(this.testUser);
         when(this.mapper.map(any(Chirick.class), eq(ChirickViewModel.class))).thenAnswer(a -> {
             Chirick c = a.getArgument(0);
             ChirickViewModel m = new ChirickViewModel();
@@ -124,7 +127,7 @@ public class ChirickServiceGetActivityFromUserTests {
 
     @Test
     public void testGetActivity_WithValidData_ShouldNotThrowOrReturnNull() throws UserNotFoundException {
-        List<ChirickViewModel> result = this.chirickService.getChiricksFromUser(USER_HANDLE, this.testRequester.getHandle(), this.pageable);
+        List<ChirickViewModel> result = this.chirickService.getChiricksFromUser(this.testUser.getHandle(), this.testRequester.getHandle(), this.pageable);
 
         assertNotEquals("Result model should not be null.", result, null);
     }

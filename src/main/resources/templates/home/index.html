@@ -6,7 +6,7 @@
 
 <div class="row" sec:authorize="isAuthenticated()">
 
-    <div class="col col-lg-4">
+    <div class="col col-12 col-sm-12 col-md-12 col-lg-4">
         <div class="card border-light card-size mb-3">
             <div class="card-body" id="userCard" th:object="${indexModel.getProfile()}">
 
@@ -18,15 +18,13 @@
 
     <div class="col col-12 col-sm-12 col-md-12 col-lg-8">
 
-        <div class="card border-light w-100 row card-width"
-             th:classappend="${indexModel.getGreetingStatus().getHtmlClass()}">
+        <div class="card border-light w-100 card-width" th:classappend="${indexModel.getGreetingStatus().getHtmlClass()}">
             <div class="card-body">
-                <p class="h5 text-center"
-                   th:text="${#strings.replace(indexModel.getGreetingStatus().getMessage(), '%s', indexModel.getProfile().getName())}"></p>
+                <p class="h5 text-center" th:text="${#strings.replace(indexModel.getGreetingStatus().getMessage(), '%s', indexModel.getProfile().getName())}"></p>
             </div>
         </div>
 
-        <div class="card border-light w-100 row form-green card-width">
+        <div class="card border-light w-100 form-green card-width">
             <div class="card-body">
 
                 <th:block th:replace="fragments/index/chirick-form"></th:block>
@@ -34,7 +32,7 @@
             </div>
         </div>
 
-        <div class="card border-light w-100 row card-width">
+        <div class="card border-light w-100 card-width">
             <div class="card-body" id="content">
 
             </div>

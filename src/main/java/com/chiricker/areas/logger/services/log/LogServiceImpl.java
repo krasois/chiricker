@@ -7,6 +7,7 @@ import com.chiricker.areas.admin.models.view.LogViewModel;
 import com.chiricker.areas.logger.repositories.LogRepository;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.modelmapper.ModelMapper;
@@ -39,9 +40,9 @@ public class LogServiceImpl implements LogService {
     @Override
     @Transactional
     public LogServiceModel createLog(String handle, Operation operation, String modifiedTable) {
-        User user = null;
+        SimpleUserServiceModel user = null;
         if (handle != null) {
-            user = this.userService.getByHandle(handle);
+            user = this.userService.getByHandleSimple(handle);
         }
 
         String userId = user == null ? null : user.getId();

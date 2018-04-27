@@ -10,6 +10,8 @@ public class NotificationViewModel {
 
     private String chirickContent;
 
+    private String chirickId;
+
     public NotificationViewModel() {
     }
 
@@ -43,5 +45,13 @@ public class NotificationViewModel {
 
     public void setChirickContent(String chirickContent) {
         this.chirickContent = chirickContent;
+    }
+
+    public String getChirickId() {
+        return chirickId;
+    }
+
+    public void setChirickId(String chirickId) {
+        this.chirickId = chirickId;
     }
 }

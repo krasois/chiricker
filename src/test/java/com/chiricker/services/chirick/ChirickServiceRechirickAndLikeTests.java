@@ -10,6 +10,7 @@ import com.chiricker.areas.chiricks.repositories.ChirickRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickServiceImpl;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.junit.Before;
@@ -72,7 +73,8 @@ public class ChirickServiceRechirickAndLikeTests {
         this.testChirick.setLikes(new HashSet<>());
         this.testChirick.getLikes().add(new User() {{ setId("43wg43qwstet4h5eatsg"); }});
 
-        when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
+        when(this.userService.getByHandleSimple(this.testUser.getHandle())).thenReturn(new SimpleUserServiceModel());
+        when(this.mapper.map(any(SimpleUserServiceModel.class), eq(User.class))).thenReturn(this.testUser);
         when(this.chirickRepository.findById(this.testRechirickModel.getId())).thenReturn(Optional.of(this.testChirick));
     }
 

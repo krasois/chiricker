@@ -3,6 +3,7 @@ package com.chiricker.services.notification;
 import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.users.models.entities.Notification;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.repositories.NotificationRepository;
 import com.chiricker.areas.users.services.notification.NotificationServiceImpl;
 import com.chiricker.areas.users.services.user.UserService;
@@ -12,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -24,6 +26,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -38,6 +41,8 @@ public class NotificationServicNotifyUsersTests {
     private NotificationRepository notificationRepository;
     @Mock
     private UserService userService;
+    @Mock
+    private ModelMapper mapper;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -60,9 +65,14 @@ public class NotificationServicNotifyUsersTests {
         this.testChirick.setChirick("wf4gw4fgf @cyecize gw4 @asd wg4g4wg4w");
         this.testChirick.setUser(testUser2);
 
-        when(this.userService.getByHandle(anyString())).thenReturn(null);
-        when(this.userService.getByHandle(VALID_HANDLE)).thenReturn(this.testUser);
-        when(this.userService.getByHandle(VALID_HANDLE2)).thenReturn(testUser2);
+        SimpleUserServiceModel simpleUser1 = new SimpleUserServiceModel();
+        SimpleUserServiceModel simpleUser2 = new SimpleUserServiceModel();
+
+        when(this.userService.getByHandleSimple(anyString())).thenReturn(null);
+        when(this.userService.getByHandleSimple(VALID_HANDLE)).thenReturn(simpleUser1);
+        when(this.userService.getByHandleSimple(VALID_HANDLE2)).thenReturn(simpleUser2);
+        when(this.mapper.map(simpleUser1, User.class)).thenReturn(this.testUser);
+        when(this.mapper.map(simpleUser2, User.class)).thenReturn(testUser2);
         when(this.notificationRepository.save(any())).thenAnswer(a -> a.getArgument(0));
     }
 

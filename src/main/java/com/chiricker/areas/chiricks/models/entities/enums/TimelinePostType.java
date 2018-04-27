@@ -5,7 +5,7 @@ public enum TimelinePostType {
     CHIRICK(""),
     RECHIRICK("rechiricked"),
     LIKE("liked"),
-    COMMENT("commented on");
+    COMMENT("commented");
 
     private final String value;
 

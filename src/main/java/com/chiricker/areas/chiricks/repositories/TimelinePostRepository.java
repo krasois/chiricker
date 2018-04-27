@@ -19,9 +19,9 @@ public interface TimelinePostRepository extends PagingAndSortingRepository<Timel
 
     TimelinePost findByChirickIdAndFromIdAndToIdAndTimelineIdAndPostType(String chirickId, String fromId, String toId, String timelineId, TimelinePostType type);
 
-    TimelinePost findByChirickAndFromAndToAndTimelineAndPostType(Chirick chirick, User from, User to, Timeline timeline, TimelinePostType type);
+    TimelinePost findByChirickAndFromAndToIdAndTimelineIdAndPostType(Chirick chirick, User from, String toId, String timelineId, TimelinePostType type);
 
-    Page<TimelinePost> findAllByTimelineOrderByDateDesc(Timeline timeline, Pageable pageable);
+    Page<TimelinePost> findAllByTimelineIdOrderByDateDesc(String timeline, Pageable pageable);
 
     List<TimelinePost> deleteAllByFromHandleAndToHandle(String from, String to);
 }

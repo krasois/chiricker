@@ -19,6 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +70,7 @@ public class UserServiceUpdateUserProfilePicUrlTests {
 
     @Test
     public void testUpdateProfilePic_WithValidHandle_ShouldNotReturnNullOrThrow() throws UserNotFoundException {
-        UserServiceModel model = this.userService.updateUserProfilePicUrl(this.user.getHandle(), NEW_PIC_URL);
+        Future model = this.userService.updateUserProfilePicUrl(this.user.getHandle(), NEW_PIC_URL);
 
         assertNotEquals("Result model should not be null.", model, null);
     }
@@ -78,9 +81,10 @@ public class UserServiceUpdateUserProfilePicUrlTests {
     }
 
     @Test
-    public void testUpdateProfilePic_WithVaidHandle_ShouldMapCorrectly() throws UserNotFoundException {
-        UserServiceModel model = this.userService.updateUserProfilePicUrl(this.user.getHandle(), NEW_PIC_URL);
+    public void testUpdateProfilePic_WithVaidHandle_ShouldMapCorrectly() throws UserNotFoundException, ExecutionException, InterruptedException {
+        Future model = this.userService.updateUserProfilePicUrl(this.user.getHandle(), NEW_PIC_URL);
+        UserServiceModel resultModel = (UserServiceModel) model.get();
 
-        assertEquals("Picture URL is not mapped correctly", model.getProfile().getProfilePicUrl(), NEW_PIC_URL);
+        assertEquals("Picture URL is not mapped correctly", resultModel.getProfile().getProfilePicUrl(), NEW_PIC_URL);
     }
 }

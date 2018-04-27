@@ -2,15 +2,17 @@ package com.chiricker.config;
 
 import com.chiricker.areas.home.utils.greeting.Greeting;
 import com.chiricker.areas.home.utils.greeting.GreetingFactory;
-import com.chiricker.util.mapper.CustomMapper;
+import com.chiricker.util.uploader.DropBoxFileUploader;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
+@EnableAsync
 public class BeanConfig {
 
     private static final String DROPBOX_APPLICATION_NAME = "dropbox/chiricker";
@@ -47,7 +49,7 @@ public class BeanConfig {
     }
 
     @Bean
-    public CustomMapper customModelMapper() {
-        return new CustomMapper(this.modelMapper());
+    public DropBoxFileUploader fileUploader() {
+        return new DropBoxFileUploader(this.client());
     }
 }

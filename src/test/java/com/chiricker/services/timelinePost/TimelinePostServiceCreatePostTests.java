@@ -4,25 +4,24 @@ import com.chiricker.areas.chiricks.models.entities.Chirick;
 import com.chiricker.areas.chiricks.models.entities.Timeline;
 import com.chiricker.areas.chiricks.models.entities.TimelinePost;
 import com.chiricker.areas.chiricks.models.entities.enums.TimelinePostType;
-import com.chiricker.areas.chiricks.models.service.ChirickServiceModel;
-import com.chiricker.areas.chiricks.models.service.TimelinePostServiceModel;
-import com.chiricker.areas.chiricks.models.service.TimelineServiceModel;
+import com.chiricker.areas.chiricks.models.service.*;
 import com.chiricker.areas.chiricks.repositories.TimelinePostRepository;
 import com.chiricker.areas.chiricks.services.timelinePost.TimelinePostServiceImpl;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.service.UserServiceModel;
-import com.chiricker.util.mapper.CustomMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.HashSet;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -42,12 +41,12 @@ public class TimelinePostServiceCreatePostTests {
     @Mock
     private TimelinePostRepository timelinePostRepository;
     @Mock
-    private CustomMapper customMapper;
+    private ModelMapper mapper;
 
     @InjectMocks
     private TimelinePostServiceImpl timelinePostService;
 
-    private Timeline testTimeline;
+    private TimelineUserServiceModel testTimeline;
     private Chirick testChirick;
     private User testUser;
     private TimelinePostType type;
@@ -55,16 +54,21 @@ public class TimelinePostServiceCreatePostTests {
 
     @Before
     public void setup() {
-        this.testTimeline = new Timeline() {{ setId(TIMELINE_ID); }};
-        this.testTimeline.setUser(new User() {{ setId(TIMELINE_USER_ID); }});
+        this.testTimeline = new TimelineUserServiceModel() {{ setId(TIMELINE_ID); }};
+        this.testTimeline.setUserId(TIMELINE_USER_ID);
         this.testChirick = new Chirick() {{ setId(CHIRICK_ID); }};
         this.testUser = new User() {{ setId(FROM_ID); }};
         this.type = POST_TYPE;
         this.testPost = new TimelinePost() {{
             setId(POST_ID);
-            setTimeline(testTimeline);
+            setTimeline(new Timeline() {{
+                setId(TIMELINE_ID);
+                setUser(new User() {{
+                    setId(TIMELINE_USER_ID);
+                }});
+            }});
             setFrom(testUser);
-            setTo(testTimeline.getUser());
+            setTo(new User() {{ setId(TIMELINE_USER_ID); }});
             setChirick(testChirick);
             setPostType(type);
         }};
@@ -76,15 +80,14 @@ public class TimelinePostServiceCreatePostTests {
             p.setId(POST_ID);
             return p;
         });
-        when(this.customMapper.postToServiceModel(any())).thenAnswer(a -> {
+        when(this.mapper.map(any(), eq(TimelinePostServiceModel.class))).thenAnswer(a -> {
             TimelinePost p = a.getArgument(0);
             TimelinePostServiceModel m = new TimelinePostServiceModel();
             m.setId(p.getId());
             m.setChirick(new ChirickServiceModel() {{ setId(p.getChirick().getId()); }});
             m.setTimeline(new TimelineServiceModel() {{ setId(p.getTimeline().getId()); }});
-            m.getTimeline().setUser(new UserServiceModel() {{ setId(p.getTimeline().getUser().getId()); }});
-            m.setFrom(new UserServiceModel() {{ setId(p.getFrom().getId()); }});
-            m.setTo(new UserServiceModel() {{ setId(p.getTimeline().getUser().getId()); }});
+            m.setFrom(new UserServiceModelTP() {{ setId(p.getFrom().getId()); }});
+            m.setTo(new UserServiceModelTP() {{ setId(p.getTo().getId()); }});
             m.setPostType(p.getPostType());
             return m;
         });
@@ -99,8 +102,13 @@ public class TimelinePostServiceCreatePostTests {
 
     @Test
     public void testCreatePost_WithInvalidTimeline_ShouldSaveAndMapCorrectly() {
-        this.testPost.getTimeline().setId("87008707");
-        TimelinePostServiceModel post = this.timelinePostService.createPost(this.testPost.getTimeline(), this.testChirick, this.testUser, this.type);
+        TimelineUserServiceModel newTU = new TimelineUserServiceModel();
+        newTU.setId("h34wsex7uyh35");
+        newTU.setUserId("xcvrwssrg4w3");
+
+        TimelinePostServiceModel post = this.timelinePostService.createPost(newTU, this.testChirick, this.testUser, this.type);
+        this.testPost.getTimeline().setId("h34wsex7uyh35");
+        this.testPost.getTo().setId("xcvrwssrg4w3");
 
         this.testMapping(post, this.testPost);
     }
@@ -133,7 +141,6 @@ public class TimelinePostServiceCreatePostTests {
         assertEquals("Post id is not mapped correctly.", post.getId(), compared.getId());
         assertEquals("Chirick is not mapped correctly.", post.getChirick().getId(), compared.getChirick().getId());
         assertEquals("Timeline is not mapped correctly.", post.getTimeline().getId(), compared.getTimeline().getId());
-        assertEquals("Timeline user is not mapped correctly.", post.getTimeline().getUser().getId(), compared.getTimeline().getUser().getId());
         assertEquals("From user is not mapped correctly.", post.getFrom().getId(), compared.getFrom().getId());
         assertEquals("To user is not mapped correctly.", post.getTo().getId(), compared.getTo().getId());
         assertEquals("Post type is not mapped correctly.", post.getPostType(), compared.getPostType());

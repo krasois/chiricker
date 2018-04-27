@@ -9,9 +9,9 @@ public class TimelinePostServiceModel {
 
     private String id;
 
-    private UserServiceModel from;
+    private UserServiceModelTP to;
 
-    private UserServiceModel to;
+    private UserServiceModelTP from;
 
     private ChirickServiceModel chirick;
 
@@ -32,19 +32,19 @@ public class TimelinePostServiceModel {
         this.id = id;
     }
 
-    public UserServiceModel getFrom() {
+    public UserServiceModelTP getFrom() {
         return from;
     }
 
-    public void setFrom(UserServiceModel from) {
+    public void setFrom(UserServiceModelTP from) {
         this.from = from;
     }
 
-    public UserServiceModel getTo() {
+    public UserServiceModelTP getTo() {
         return to;
     }
 
-    public void setTo(UserServiceModel to) {
+    public void setTo(UserServiceModelTP to) {
         this.to = to;
     }
 

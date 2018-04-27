@@ -2,6 +2,8 @@ package com.chiricker.areas.users.services.user;
 
 import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
 import com.chiricker.areas.admin.models.view.UserPanelViewModel;
+import com.chiricker.areas.chiricks.models.service.TimelineUserServiceModel;
+import com.chiricker.areas.chiricks.models.service.UserServiceModelTP;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.binding.FollowBindingModel;
@@ -10,24 +12,28 @@ import com.chiricker.areas.users.models.entities.Role;
 import com.chiricker.areas.users.models.entities.User;
 import com.chiricker.areas.users.models.binding.UserEditBindingModel;
 import com.chiricker.areas.users.models.service.RoleServiceModel;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.models.view.*;
 import com.chiricker.areas.users.repositories.UserRepository;
 import com.chiricker.areas.users.services.role.RoleService;
-import com.chiricker.util.mapper.CustomMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,15 +46,13 @@ public class UserServiceImpl implements UserService {
     private final RoleService roleService;
 
     private final ModelMapper mapper;
-    private final CustomMapper customMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, CustomMapper customMapper, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleService roleService, ModelMapper mapper, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.mapper = mapper;
-        this.customMapper = customMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -83,10 +87,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getByHandle(String handle) {
+    public UserServiceModel getByHandleModel(String handle) {
         User user = this.userRepository.findByHandle(handle);
         if (user == null) return null;
-        return user;
+        return this.mapper.map(user, UserServiceModel.class);
+    }
+
+    @Override
+    public SimpleUserServiceModel getByHandleSimple(String handle) {
+        User user = this.userRepository.findByHandle(handle);
+        if (user == null) return null;
+        return this.mapper.map(user, SimpleUserServiceModel.class);
+    }
+
+    @Override
+    public Set<TimelineUserServiceModel> getUserFollowerTimelineIds(String userId) {
+        User user = this.userRepository.findById(userId).orElse(null);
+        if (user == null) return null;
+
+        return user.getFollowers().stream()
+                .map(f -> {
+                    TimelineUserServiceModel result = new TimelineUserServiceModel();
+                    result.setId(f.getTimeline().getId());
+                    result.setUserId(f.getId());
+                    return result;
+                })
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getIdForHandle(String handle) {
+        User user = this.userRepository.findByHandle(handle);
+        if (user == null) return null;
+        return user.getId();
     }
 
     @Override
@@ -262,15 +295,18 @@ public class UserServiceImpl implements UserService {
         return followerModels;
     }
 
+    @Async
     @Override
-    public UserServiceModel updateUserProfilePicUrl(String userHandle, String pictureUrl) throws UserNotFoundException {
+    @Transactional
+    public Future updateUserProfilePicUrl(String userHandle, String pictureUrl) throws UserNotFoundException {
         User user = this.userRepository.findByHandle(userHandle);
         if (user == null) throw new UserNotFoundException("User with handle " + userHandle + " was not found");
 
         user.getProfile().setProfilePicUrl(pictureUrl);
         this.userRepository.save(user);
 
-        return this.mapper.map(user, UserServiceModel.class);
+        UserServiceModel result = this.mapper.map(user, UserServiceModel.class);
+        return new AsyncResult<>(result);
     }
 
     @Override

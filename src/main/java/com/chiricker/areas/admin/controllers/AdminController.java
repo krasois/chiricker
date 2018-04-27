@@ -8,9 +8,10 @@ import com.chiricker.areas.logger.services.log.LogService;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
-import com.chiricker.util.uploader.FileUploader;
 import com.chiricker.controllers.BaseController;
+import com.chiricker.util.uploader.FileManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+import java.util.concurrent.ExecutionException;
 
 @Controller
 @RequestMapping("/admin")
@@ -31,13 +33,13 @@ public class AdminController extends BaseController {
 
     private final UserService userService;
     private final LogService logService;
-    private final FileUploader fileUploader;
+    private final FileManager fileManager;
 
     @Autowired
-    public AdminController(UserService userService, LogService logService, FileUploader fileUploader) {
+    public AdminController(UserService userService, LogService logService, FileManager fileManager) {
         this.userService = userService;
         this.logService = logService;
-        this.fileUploader = fileUploader;
+        this.fileManager = fileManager;
     }
 
     @GetMapping("/users")
@@ -67,8 +69,8 @@ public class AdminController extends BaseController {
     @Logger(entity = User.class, operation = Operation.SETTINGS_CHANGE_ADMIN)
     public ModelAndView editUser(@PathVariable("id") String id, @Valid @ModelAttribute("user") EditUserBindingModel user, BindingResult result) throws UserNotFoundException, UserRoleNotFoundException {
         if (result.hasErrors()) return this.view("admin/edit");
-        this.userService.editAdmin(id, user);
-        this.fileUploader.uploadFile(user.getHandle(), user.getProfilePicture());
+        UserServiceModel resultModel = this.userService.editAdmin(id, user);
+        this.fileManager.updateProfilePicture(user.getHandle(), resultModel.getProfile().getProfilePicUrl(), user.getProfilePicture());
         return this.redirect("/admin/users");
     }
 

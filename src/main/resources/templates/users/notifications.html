@@ -8,7 +8,7 @@
                 <div th:text="'mentioned you'"></div>
             </div>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item" th:utext="*{getChirickContent()}"></li>
+                <li class="list-group-item" th:attr="data-chirick-id='/@' + *{getUserHandle()} + '/' + *{getChirickId()}" onclick="goToChirick(this)" id="chirick" th:utext="*{getChirickContent()}"></li>
             </ul>
         </div>
     </div>

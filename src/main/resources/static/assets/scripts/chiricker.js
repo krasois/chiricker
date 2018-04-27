@@ -58,7 +58,8 @@ function sendChirick() {
             chirickField.val("");
             showNoty('success', 'Successfully chiricked!')
         },
-        error: () => {
+        error: (error) => {
+            console.log(error);
             showNoty('error', 'Could not chirick. Try again.');
         }
     });
@@ -73,7 +74,7 @@ function getActivityForUser(activityType) {
     let loader = $("#loader");
     if (!loader.length) {
         loader = $('<div class="d-flex justify-content-center" id="loader">')
-                .append($('<div class="loader">'));
+            .append($('<div class="loader">'));
     }
 
     contentHolder.append(loader);
@@ -87,7 +88,6 @@ function getActivityForUser(activityType) {
             showNoty('error', activityType.substr(0, 1).toUpperCase() + activityType.substr(1) + ' could not be loaded, refresh the page and try again.');
         },
         success: (data) => {
-            console.log(data);
             loader.remove();
 
             if (data.length < page().getMaxPerPage()) {
@@ -110,19 +110,18 @@ function getRelationshipsForUser(relationshipType) {
     let loader = $("#loader");
     if (!loader.length) {
         loader = $('<div class="d-flex justify-content-center" id="loader">')
-                .append($('<div class="loader">'));
+            .append($('<div class="loader">'));
     }
 
     contentHolder.append(loader);
 
-    let handle  = $("#userCardHandle").text();
+    let handle = $("#userCardHandle").text();
 
     $.ajax({
         type: 'GET',
         contentType: 'application/json',
         url: '/user/' + handle + '/' + relationshipType + '?page=' + page().getNext(),
         success: (data) => {
-            console.log(data);
             loader.remove();
 
             if (data.length < page().getMaxPerPage()) {
@@ -239,8 +238,8 @@ function getTimeline() {
                 let userRow = div.find('#userRow');
                 if (timelinePost.postTypeValue !== '') {
                     let activity = $('<div class="col col-lg-10">')
-                        .append('<small class="card-subtitle text-muted"><a class="text-muted" href="@' + timelinePost.posterHandle + '">' +
-                            '@' + timelinePost.posterHandle + "</a> " + timelinePost.postTypeValue + '</small>');
+                        .append('<small class="card-subtitle text-muted"><a class="text-muted" href="@' + timelinePost.fromHandle + '">' +
+                            '@' + timelinePost.fromHandle + "</a> " + timelinePost.postTypeValue + '</small>');
                     $(userRow).prepend(activity);
                 }
             }
@@ -566,12 +565,12 @@ function createFollowDiv(user, contentHolder) {
             .text('@' + user.handle));
 
     let followBtn = $('<span class="fake-link btn btn-sm col mt-1">')
-                .text(user.followed ? 'Following' : 'Follow')
-                .addClass(user.followed ? 'btn-success' : 'btn-outline-success')
-                .attr("data-handle", user.handle)
-                .click((event) => {
-                    follow(event.target);
-                });
+        .text(user.followed ? 'Following' : 'Follow')
+        .addClass(user.followed ? 'btn-success' : 'btn-outline-success')
+        .attr("data-handle", user.handle)
+        .click((event) => {
+            follow(event.target);
+        });
 
     let pictureCol = $('<div class="col col-6 col-sm-6 col-md-6 col-lg-6">')
         .append($('<img class="img-fluid rounded-circle min-user-image" alt="Profile picture" src="' + user.profilePicUrl + '"/>'));
@@ -699,7 +698,6 @@ function isFileValid() {
     }
 
     if (!isFileTypeSupported) {
-        console.log(fileSize);
         let typeError = $("#typeError");
         if (!typeError.length) {
             typeError = $("<p class=\"text-danger mb-0\" id=\"typeError\">");
@@ -718,4 +716,9 @@ function showNoty(type, message) {
         text: message,
         timeout: 1500
     }).show();
+}
+
+function goToChirick(event) {
+    let chirickPath = $(event).attr("data-chirick-id");
+    window.location.href = document.location.origin + chirickPath;
 }

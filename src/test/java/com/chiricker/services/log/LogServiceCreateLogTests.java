@@ -5,7 +5,7 @@ import com.chiricker.areas.logger.models.entities.enums.Operation;
 import com.chiricker.areas.logger.models.service.LogServiceModel;
 import com.chiricker.areas.logger.repositories.LogRepository;
 import com.chiricker.areas.logger.services.log.LogServiceImpl;
-import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import org.junit.Before;
@@ -13,11 +13,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Date;
@@ -25,6 +23,7 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -43,14 +42,14 @@ public class LogServiceCreateLogTests {
     @InjectMocks
     private LogServiceImpl logService;
 
-    private User user;
+    private SimpleUserServiceModel user;
 
     @Before
     public void setup() {
-        this.user = new User();
+        this.user = new SimpleUserServiceModel();
         this.user.setId("asdsadadasdasd");
 
-        when(this.userService.getByHandle(user.getId())).thenReturn(user);
+        when(this.userService.getByHandleSimple(anyString())).thenReturn(this.user);
         when(this.mapper.map(any(Log.class), eq(LogServiceModel.class))).thenAnswer(a -> {
             Log l = a.getArgument(0);
             LogServiceModel m = new LogServiceModel();

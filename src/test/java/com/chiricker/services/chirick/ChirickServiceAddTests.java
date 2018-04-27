@@ -7,6 +7,7 @@ import com.chiricker.areas.chiricks.repositories.ChirickRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickServiceImpl;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.notification.NotificationService;
 import com.chiricker.areas.users.services.user.UserService;
@@ -55,7 +56,8 @@ public class ChirickServiceAddTests {
         this.testUser.setId("rgweaeg24wgw");
         this.testUser.setHandle("pesho");
 
-        when(this.userService.getByHandle(this.testUser.getHandle())).thenReturn(this.testUser);
+        when(this.userService.getByHandleSimple(this.testUser.getHandle())).thenReturn(new SimpleUserServiceModel());
+        when(this.mapper.map(any(SimpleUserServiceModel.class), eq(User.class))).thenReturn(this.testUser);
         when(this.chirickRepository.save(any(Chirick.class))).thenAnswer(a -> a.getArgument(0));
         when(this.mapper.map(any(ChirickBindingModel.class), eq(Chirick.class))).thenAnswer(a -> {
             ChirickBindingModel m = a.getArgument(0);

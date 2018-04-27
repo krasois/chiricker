@@ -6,12 +6,15 @@ import com.chiricker.areas.chiricks.models.entities.enums.TimelinePostType;
 import com.chiricker.areas.chiricks.models.service.ChirickServiceModel;
 import com.chiricker.areas.chiricks.models.entities.Timeline;
 import com.chiricker.areas.chiricks.models.service.TimelinePostServiceModel;
+import com.chiricker.areas.chiricks.models.service.TimelineUserServiceModel;
+import com.chiricker.areas.chiricks.models.service.UserServiceModelTP;
 import com.chiricker.areas.chiricks.models.view.ChirickViewModel;
 import com.chiricker.areas.chiricks.models.view.TimelinePostViewModel;
 import com.chiricker.areas.chiricks.repositories.TimelineRepository;
 import com.chiricker.areas.chiricks.services.chirick.ChirickService;
 import com.chiricker.areas.chiricks.services.timelinePost.TimelinePostService;
 import com.chiricker.areas.users.models.entities.User;
+import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
 import com.chiricker.util.linker.UserLinker;
 import org.modelmapper.ModelMapper;
@@ -51,16 +54,27 @@ public class TimelineServiceImpl implements TimelineService {
         return this.mapper.map(serviceModel, Chirick.class);
     }
 
-    private User getUserWithHandle(String handle) {
-        return this.userService.getByHandle(handle);
+    private Timeline removeFromTimeline(TimelineUserServiceModel timeline, Chirick chirick, User user, TimelinePostType type) {
+        String postId = this.timelinePostService.getPostIdByFields(timeline, chirick, user, type);
+        if (postId == null) return null;
+        Timeline timelineRaw = this.timelineRepository.findById(timeline.getId()).orElse(null);
+        if (timelineRaw == null) return null;
+
+        List<TimelinePost> toRemove = timelineRaw.getPosts().stream()
+                .filter(p -> p.getId().equals(postId))
+                .collect(Collectors.toList());
+
+        timelineRaw.getPosts().removeAll(toRemove);
+        this.timelinePostService.deletePosts(toRemove);
+        return timelineRaw;
     }
 
-    private TimelinePostViewModel mapPostToViewModel(TimelinePost post, User user) {
+    private TimelinePostViewModel mapPostToViewModel(TimelinePostServiceModel post, String userId) {
         TimelinePostViewModel viewModel = new TimelinePostViewModel();
-        viewModel.setPosterHandle(post.getFrom().getHandle());
+        viewModel.setFromHandle(post.getFrom().getHandle());
         viewModel.setPostTypeValue(post.getPostType().getValue());
 
-        User originalPoster = post.getChirick().getUser();
+        UserServiceModel originalPoster = post.getChirick().getUser();
         ChirickViewModel chirickModel = new ChirickViewModel();
         chirickModel.setUserName(originalPoster.getName());
         chirickModel.setUserHandle(originalPoster.getHandle());
@@ -70,22 +84,22 @@ public class TimelineServiceImpl implements TimelineService {
         chirickModel.setChirick(UserLinker.linkUsers(
                 post.getChirick().getChirick()));
 
-        Chirick chirick = post.getChirick();
+        ChirickServiceModel chirick = post.getChirick();
 
         chirickModel.setRechiricksSize(chirick.getRechiricks().size());
         chirickModel.setRechiricked(chirick.getRechiricks().stream()
-                .anyMatch(u -> u.getId().equals(user.getId())));
+                .anyMatch(u -> u.getId().equals(userId)));
 
         chirickModel.setLikesSize(chirick.getLikes().size());
         chirickModel.setLiked(chirick.getLikes().stream()
-                .anyMatch(u -> u.getId().equals(user.getId())));
+                .anyMatch(u -> u.getId().equals(userId)));
 
         chirickModel.setCommentsSize(chirick.getComments().size());
         chirickModel.setCommented(chirick.getComments().stream()
-                .anyMatch(u -> u.getUser().getId().equals(user.getId())));
+                .anyMatch(u -> u.getUser().getId().equals(userId)));
 
         if (chirick.getParent() != null) {
-            Chirick parent = chirick.getParent();
+            ChirickServiceModel parent = chirick.getParent();
             String parentUrl = "/@" + parent.getUser().getHandle() + "/" + parent.getId();
             chirickModel.setParentUrl(parentUrl);
         }
@@ -94,39 +108,16 @@ public class TimelineServiceImpl implements TimelineService {
         return viewModel;
     }
 
-    private void addToTimeline(Timeline timeline, Chirick chirick, User user, TimelinePostType type) {
-        TimelinePostServiceModel postModel = this.timelinePostService.createPost(timeline, chirick, user, type);
-        TimelinePost timelinePost = new TimelinePost();
-        timelinePost.setId(postModel.getId());
-        timelinePost.setDate(postModel.getDate());
-        timelinePost.setPostType(postModel.getPostType());
-        timelinePost.setTimeline(this.mapper.map(postModel.getTimeline(), Timeline.class));
-        timelinePost.setChirick(this.mapper.map(postModel.getChirick(), Chirick.class));
-        timelinePost.setTo(this.mapper.map(postModel.getTo(), User.class));
-        timelinePost.setFrom(this.mapper.map(postModel.getFrom(), User.class));
-        timeline.getPosts().add(timelinePost);
-    }
-
-    private void removeFromTimeline(Timeline timeline, Chirick chirick, User user, TimelinePostType type) {
-        String postId = this.timelinePostService.getPostIdByFields(timeline, chirick, user, type);
-        if (postId == null) return;
-        List<TimelinePost> toRemove = timeline.getPosts().stream()
-                .filter(p -> p.getId().equals(postId))
-                .collect(Collectors.toList());
-
-        timeline.getPosts().removeAll(toRemove);
-        this.timelinePostService.deletePosts(toRemove);
-    }
-
     @Override
     public List<TimelinePostViewModel> getTimelineForUser(String userHandle, Pageable pageable) {
-        User user = this.getUserWithHandle(userHandle);
+        String userId = this.userService.getIdForHandle(userHandle);
+        Timeline userTimeline = this.timelineRepository.findByUserId(userId);
+        if (userTimeline == null) return new ArrayList<>();
 
-        if (user.getTimeline().getPosts().size() < 1) return new ArrayList<>();
-        Timeline timeline = this.mapper.map(user.getTimeline(), Timeline.class);
-        Page<TimelinePost> posts = this.timelinePostService.getPostsFromTimeline(timeline, pageable);
+        if (userTimeline.getPosts().size() < 1) return new ArrayList<>();
+        Page<TimelinePostServiceModel> posts = this.timelinePostService.getPostsFromTimeline(userTimeline.getId(), pageable);
 
-        Page<TimelinePostViewModel> map = posts.map(p -> mapPostToViewModel(p, user));
+        Page<TimelinePostViewModel> map = posts.map(p -> mapPostToViewModel(p, userId));
         return map.getContent();
     }
 
@@ -137,30 +128,31 @@ public class TimelineServiceImpl implements TimelineService {
         Chirick chirick = this.getChirick(chirickId);
         if (chirick == null) return null;
 
-        User user = this.getUserWithHandle(userHandle);
-        if (user == null) return null;
+        String userId = this.userService.getIdForHandle(userHandle);
+        if (userId == null) return null;
+        User user = new User();
+        user.setId(userId);
 
-        Set<Timeline> timelines = user.getFollowers().stream()
-                .map(User::getTimeline)
-                .collect(Collectors.toSet());
+        Set<TimelineUserServiceModel> timelines = this.userService.getUserFollowerTimelineIds(userId);
+        Set<Timeline> rawTimelines = new HashSet<>();
 
-        for (Timeline timeline : timelines) {
+        for (TimelineUserServiceModel timeline : timelines) {
             if (isAdding) {
-                this.addToTimeline(timeline, chirick, user, type);
-                this.timelineRepository.saveAndFlush(timeline);
+                this.timelinePostService.createPost(timeline, chirick, user, type);
             } else {
-                this.removeFromTimeline(timeline, chirick, user, type);
+                Timeline timelineRaw = this.removeFromTimeline(timeline, chirick, user, type);
+                rawTimelines.add(timelineRaw);
             }
         }
 
-        return new AsyncResult<>(timelines);
+        return new AsyncResult<>(isAdding ? timelines : rawTimelines);
     }
 
     @Async
     @Override
     @Transactional
     public Future unfollow(String userHandle, String requesterHandle) {
-        List<TimelinePost> deletedTimelinePosts = this.timelinePostService.deletePostsFromUserToUser(userHandle, requesterHandle);
+        List<TimelinePostServiceModel> deletedTimelinePosts = this.timelinePostService.deletePostsFromUserToUser(userHandle, requesterHandle);
         if (deletedTimelinePosts == null) return null;
 
         return new AsyncResult<>(deletedTimelinePosts);
