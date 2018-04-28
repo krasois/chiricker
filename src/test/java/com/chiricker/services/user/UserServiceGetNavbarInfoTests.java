@@ -54,7 +54,7 @@ public class UserServiceGetNavbarInfoTests {
         this.userTest.getProfile().setProfilePicUrl("default");
         this.userTest.setNotifications(new HashSet<>());
 
-        when(this.userRepository.findByHandle(this.userTest.getHandle())).thenReturn(this.userTest);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.userTest.getHandle())).thenReturn(this.userTest);
         when(this.mapper.map(any(), eq(UserNavbarViewModel.class))).thenAnswer(m -> {
             User user = m.getArgument(0);
 

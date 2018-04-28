@@ -103,7 +103,7 @@ public class UserServiceGetByHandleTests {
             setUser(user2);
         }});
 
-        when(this.userRepository.findByHandle(USER_HANDLE)).thenReturn(new User());
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(USER_HANDLE)).thenReturn(new User());
         when(this.mapper.map(any(User.class), eq(SimpleUserServiceModel.class))).thenReturn(this.user);
         when(this.mapper.map(any(User.class), eq(UserServiceModel.class))).thenReturn(this.user2);
     }

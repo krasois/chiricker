@@ -69,45 +69,6 @@ public class TimelineServiceImpl implements TimelineService {
         return timelineRaw;
     }
 
-    private TimelinePostViewModel mapPostToViewModel(TimelinePostServiceModel post, String userId) {
-        TimelinePostViewModel viewModel = new TimelinePostViewModel();
-        viewModel.setFromHandle(post.getFrom().getHandle());
-        viewModel.setPostTypeValue(post.getPostType().getValue());
-
-        UserServiceModel originalPoster = post.getChirick().getUser();
-        ChirickViewModel chirickModel = new ChirickViewModel();
-        chirickModel.setUserName(originalPoster.getName());
-        chirickModel.setUserHandle(originalPoster.getHandle());
-        chirickModel.setUserProfilePicUrl(originalPoster.getProfile().getProfilePicUrl());
-
-        chirickModel.setId(post.getChirick().getId());
-        chirickModel.setChirick(UserLinker.linkUsers(
-                post.getChirick().getChirick()));
-
-        ChirickServiceModel chirick = post.getChirick();
-
-        chirickModel.setRechiricksSize(chirick.getRechiricks().size());
-        chirickModel.setRechiricked(chirick.getRechiricks().stream()
-                .anyMatch(u -> u.getId().equals(userId)));
-
-        chirickModel.setLikesSize(chirick.getLikes().size());
-        chirickModel.setLiked(chirick.getLikes().stream()
-                .anyMatch(u -> u.getId().equals(userId)));
-
-        chirickModel.setCommentsSize(chirick.getComments().size());
-        chirickModel.setCommented(chirick.getComments().stream()
-                .anyMatch(u -> u.getUser().getId().equals(userId)));
-
-        if (chirick.getParent() != null) {
-            ChirickServiceModel parent = chirick.getParent();
-            String parentUrl = "/@" + parent.getUser().getHandle() + "/" + parent.getId();
-            chirickModel.setParentUrl(parentUrl);
-        }
-
-        viewModel.setChirick(chirickModel);
-        return viewModel;
-    }
-
     @Override
     public List<TimelinePostViewModel> getTimelineForUser(String userHandle, Pageable pageable) {
         String userId = this.userService.getIdForHandle(userHandle);
@@ -115,10 +76,9 @@ public class TimelineServiceImpl implements TimelineService {
         if (userTimeline == null) return new ArrayList<>();
 
         if (userTimeline.getPosts().size() < 1) return new ArrayList<>();
-        Page<TimelinePostServiceModel> posts = this.timelinePostService.getPostsFromTimeline(userTimeline.getId(), pageable);
+        Page<TimelinePostViewModel> posts = this.timelinePostService.getPostsFromTimeline(userTimeline.getId(), userId, pageable);
 
-        Page<TimelinePostViewModel> map = posts.map(p -> mapPostToViewModel(p, userId));
-        return map.getContent();
+        return posts.getContent();
     }
 
     @Async

@@ -63,6 +63,9 @@ public class ChirickServiceCommenTests {
         this.testChirick.getComments().add(new Chirick());
         this.testChirick.getComments().add(new Chirick());
         this.testChirick.getComments().add(new Chirick());
+        this.testChirick.setUser(new User() {{
+            setEnabled(true);
+        }});
 
         this.testModel = new CommentBindingModel();
         this.testModel.setComment("comment");
@@ -82,6 +85,14 @@ public class ChirickServiceCommenTests {
     @Test(expected = ChirickNotFoundException.class)
     public void testComment_WithInvalidChirickId_ShouldThrowChirickNotFound() throws UserNotFoundException, ChirickNotFoundException {
         this.testModel.setId("3334343135ggh");
+        this.chirickService.comment(this.testModel, this.testUser.getHandle());
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void testLike_WithNonEnabledUser_ShouldThrowUserNotFound() throws UserNotFoundException, ChirickNotFoundException {
+        this.testChirick.setUser(new User() {{
+            setEnabled(false);
+        }});
         this.chirickService.comment(this.testModel, this.testUser.getHandle());
     }
 

@@ -14,11 +14,11 @@ import java.util.Set;
 public interface ChirickRepository extends PagingAndSortingRepository<Chirick, String> {
 
     @Query("SELECT c FROM Chirick AS c WHERE c IN ?1 ORDER BY c.date DESC")
-    List<Chirick> getChiricksInCollection(Set<Chirick> chiricks, Pageable pageable);
+    List<Chirick> getChiricksInCollectionAndUserIsEnabledTrue(Set<Chirick> chiricks, Pageable pageable);
 
-    List<Chirick> findAllByUserHandleAndParentIsNullOrderByDateDesc(String handle, Pageable pageable);
+    List<Chirick> findAllByUserHandleAndUserIsEnabledTrueAndParentIsNullOrderByDateDesc(String handle, Pageable pageable);
 
-    List<Chirick> findAllByUserHandleAndParentIsNotNullOrderByDateDesc(String handle, Pageable pageable);
+    List<Chirick> findAllByUserHandleAndUserIsEnabledTrueAndParentIsNotNullOrderByDateDesc(String handle, Pageable pageable);
 
-    List<Chirick> findAllByParentIdOrderByDateDesc(String postId, Pageable pageable);
+    List<Chirick> findAllByParentIdAndUserIsEnabledTrueOrderByDateDesc(String postId, Pageable pageable);
 }

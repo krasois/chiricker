@@ -52,7 +52,7 @@ public class UserServiceGetUserCardTests {
         this.user.getProfile().setWebsiteUrl("www.website.com");
         this.user.getProfile().setProfilePicUrl("default");
 
-        when(this.userRepository.findByHandle(this.user.getHandle())).thenReturn(this.user);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.user.getHandle())).thenReturn(this.user);
     }
 
     @Test

@@ -80,8 +80,8 @@ public class UserServiceGetFollowersAndFollowingForUserTests {
         this.followers.add(this.requester);
         this.followers.add(this.tosho);
 
-        when(this.userRepository.findByHandle(this.user.getHandle())).thenReturn(this.user);
-        when(this.userRepository.findByHandle(this.requester.getHandle())).thenReturn(this.requester);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.user.getHandle())).thenReturn(this.user);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.requester.getHandle())).thenReturn(this.requester);
         when(this.userRepository.findAllByFollowingContainingOrderByHandle(this.user, this.pageable)).thenReturn(this.followers);
         when(this.userRepository.findAllByFollowersContainingOrderByHandle(this.user, this.pageable)).thenReturn(this.followers);
         when(this.mapper.map(any(), eq(FollowerViewModel.class))).thenAnswer(a -> {

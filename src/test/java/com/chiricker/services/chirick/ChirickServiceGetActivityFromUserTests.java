@@ -7,7 +7,6 @@ import com.chiricker.areas.chiricks.services.chirick.ChirickServiceImpl;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.models.entities.Profile;
 import com.chiricker.areas.users.models.entities.User;
-import com.chiricker.areas.users.models.service.ProfileServiceModel;
 import com.chiricker.areas.users.models.service.SimpleUserServiceModel;
 import com.chiricker.areas.users.models.service.UserServiceModel;
 import com.chiricker.areas.users.services.user.UserService;
@@ -19,22 +18,18 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -110,8 +105,8 @@ public class ChirickServiceGetActivityFromUserTests {
 
         when(this.userService.getByHandleSimple(eq(this.testRequester.getHandle()))).thenReturn(new SimpleUserServiceModel());
         when(this.userService.getByHandleModel(eq(this.testUser.getHandle()))).thenReturn(new UserServiceModel());
-        when(this.chirickRepository.findAllByUserHandleAndParentIsNullOrderByDateDesc(this.testUser.getHandle(), this.pageable)).thenReturn(testChiricks);
-        when(this.chirickRepository.getChiricksInCollection(any(), eq(this.pageable))).thenReturn(testChiricks);
+        when(this.chirickRepository.findAllByUserHandleAndUserIsEnabledTrueAndParentIsNullOrderByDateDesc(this.testUser.getHandle(), this.pageable)).thenReturn(testChiricks);
+        when(this.chirickRepository.getChiricksInCollectionAndUserIsEnabledTrue(any(), eq(this.pageable))).thenReturn(testChiricks);
         when(this.mapper.map(any(SimpleUserServiceModel.class), eq(User.class))).thenReturn(this.testRequester);
         when(this.mapper.map(any(UserServiceModel.class), eq(User.class))).thenReturn(this.testUser);
         when(this.mapper.map(any(Chirick.class), eq(ChirickViewModel.class))).thenAnswer(a -> {

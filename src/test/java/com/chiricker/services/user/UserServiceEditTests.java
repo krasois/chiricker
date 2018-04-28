@@ -93,7 +93,7 @@ public class UserServiceEditTests {
         this.testModel.setConfirmPassword("");
         this.testModel.setProfilePicture(null);
 
-        Mockito.when(this.userRepository.findByHandle("pesho")).thenReturn(pesho);
+        Mockito.when(this.userRepository.findByIsEnabledIsTrueAndHandle("pesho")).thenReturn(pesho);
         Mockito.when(this.userRepository.save(any())).thenAnswer(u -> u.getArgument(0));
         Mockito.when(mapper.map(any(User.class), eq(UserServiceModel.class))).thenAnswer(r ->  {
             User model = r.getArgument(0);

@@ -3,7 +3,6 @@ package com.chiricker.areas.users.services.user;
 import com.chiricker.areas.admin.models.binding.EditUserBindingModel;
 import com.chiricker.areas.admin.models.view.UserPanelViewModel;
 import com.chiricker.areas.chiricks.models.service.TimelineUserServiceModel;
-import com.chiricker.areas.chiricks.models.service.UserServiceModelTP;
 import com.chiricker.areas.users.exceptions.UserNotFoundException;
 import com.chiricker.areas.users.exceptions.UserRoleNotFoundException;
 import com.chiricker.areas.users.models.binding.FollowBindingModel;
@@ -86,16 +85,20 @@ public class UserServiceImpl implements UserService {
         return this.mapper.map(userRoleModel, Role.class);
     }
 
+    private User getByHandleIfEnabled(String handle) {
+        return this.userRepository.findByIsEnabledIsTrueAndHandle(handle);
+    }
+
     @Override
     public UserServiceModel getByHandleModel(String handle) {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) return null;
         return this.mapper.map(user, UserServiceModel.class);
     }
 
     @Override
     public SimpleUserServiceModel getByHandleSimple(String handle) {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) return null;
         return this.mapper.map(user, SimpleUserServiceModel.class);
     }
@@ -148,7 +151,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserServiceModel edit(UserEditBindingModel model, String handle) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) throw new UserNotFoundException("User with handle " + handle + " was not found");
 
         user.setName(model.getName());
@@ -169,11 +172,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public FollowResultViewModel follow(FollowBindingModel model, String requesterHandle) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(model.getHandle());
-        if (user == null) throw new UserNotFoundException("User " + model.getHandle() + " was not found");
+        User user = this.getByHandleIfEnabled(model.getHandle());
+        if (user == null) throw new UserNotFoundException();
 
-        User requester = this.userRepository.findByHandle(requesterHandle);
-        if (requester == null) throw new UserNotFoundException("User " + requesterHandle + " was not found");
+        User requester = this.getByHandleIfEnabled(requesterHandle);
+        if (requester == null) throw new UserNotFoundException();
 
         if (requester == user) throw new IllegalStateException("Cannot follow yourself");
 
@@ -193,7 +196,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEditBindingModel getUserSettings(String handle) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) throw new UserNotFoundException();
 
         UserEditBindingModel userModel = new UserEditBindingModel();
@@ -208,7 +211,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserCardViewModel getUserCard(String handle) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) throw new UserNotFoundException();
 
         UserCardViewModel cardViewModel = new UserCardViewModel();
@@ -222,7 +225,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserNavbarViewModel getNavbarInfo(String handle) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) throw new UserNotFoundException();
         UserNavbarViewModel viewModel = this.mapper.map(user, UserNavbarViewModel.class);
         long notificationsCount = user.getNotifications()
@@ -235,7 +238,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ProfileViewModel getProfileByHandle(String handle, String requesterHandle) throws UserNotFoundException {
-        User user = this.userRepository.findByIsEnabledIsTrueAndHandle(handle);
+        User user = this.getByHandleIfEnabled(handle);
         if (user == null) throw new UserNotFoundException();
 
         User requester = this.userRepository.findByHandle(requesterHandle);
@@ -259,10 +262,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<FollowerViewModel> getFollowersForUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(userHandle);
+        User user = this.getByHandleIfEnabled(userHandle);
         if (user == null) throw new UserNotFoundException("User with handle " + userHandle + " was not found");
 
-        User requester = this.userRepository.findByHandle(requesterHandle);
+        User requester = this.getByHandleIfEnabled(requesterHandle);
         if (requester == null) throw new UserNotFoundException();
 
         List<User> followers = this.userRepository.findAllByFollowingContainingOrderByHandle(user, pageable);
@@ -278,10 +281,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<FollowerViewModel> getFollowingForUser(String userHandle, String requesterHandle, Pageable pageable) throws UserNotFoundException {
-        User user = this.userRepository.findByHandle(userHandle);
+        User user = this.getByHandleIfEnabled(userHandle);
         if (user == null) throw new UserNotFoundException("User with handle " + userHandle + " was not found");
 
-        User requester = this.userRepository.findByHandle(requesterHandle);
+        User requester = this.getByHandleIfEnabled(requesterHandle);
         if (requester == null) throw new UserNotFoundException();
 
         List<User> followers = this.userRepository.findAllByFollowersContainingOrderByHandle(user, pageable);
@@ -314,7 +317,7 @@ public class UserServiceImpl implements UserService {
         User requester = this.userRepository.findByHandle(requesterHandle);
         if (requester == null) throw new UserNotFoundException();
 
-        Page<User> users = this.userRepository.findAllByNameContainingOrderByHandle(query, pageable);
+        Page<User> users = this.userRepository.findAllByNameContainingAndIsEnabledTrueOrderByHandle(query, pageable);
         Page<FollowerViewModel> peers = users.map(u -> mapFollowerViewModel(u, requester));
 
         PeerSearchResultViewModel result = new PeerSearchResultViewModel();

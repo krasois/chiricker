@@ -72,6 +72,9 @@ public class ChirickServiceRechirickAndLikeTests {
         this.testChirick.getRechiricks().add(new User() {{ setId("sdfgtrht4w3wggw4"); }});
         this.testChirick.setLikes(new HashSet<>());
         this.testChirick.getLikes().add(new User() {{ setId("43wg43qwstet4h5eatsg"); }});
+        this.testChirick.setUser(new User() {{
+            setEnabled(true);
+        }});
 
         when(this.userService.getByHandleSimple(this.testUser.getHandle())).thenReturn(new SimpleUserServiceModel());
         when(this.mapper.map(any(SimpleUserServiceModel.class), eq(User.class))).thenReturn(this.testUser);
@@ -112,6 +115,14 @@ public class ChirickServiceRechirickAndLikeTests {
     @Test(expected = UserNotFoundException.class)
     public void testLike_WithInvalidHandle_ShouldThrowUserNotFound() throws UserNotFoundException, ChirickNotFoundException {
         this.chirickService.like(this.testLikeModel, "asdasdasd");
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void testLike_WithNonEnabledUser_ShouldThrowUserNotFound() throws UserNotFoundException, ChirickNotFoundException {
+        this.testChirick.setUser(new User() {{
+            setEnabled(false);
+        }});
+        this.chirickService.like(this.testLikeModel, this.testUser.getHandle());
     }
 
     @Test

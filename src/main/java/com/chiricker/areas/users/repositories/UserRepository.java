@@ -28,5 +28,5 @@ public interface UserRepository extends PagingAndSortingRepository<User, String>
 
     List<User> findAllByFollowersContainingOrderByHandle(User handle, Pageable pageable);
 
-    Page<User> findAllByNameContainingOrderByHandle(String name, Pageable pageable);
+    Page<User> findAllByNameContainingAndIsEnabledTrueOrderByHandle(String name, Pageable pageable);
 }

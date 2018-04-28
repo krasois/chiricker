@@ -58,8 +58,8 @@ public class UserServiceFollowTests {
         this.gosho = new User();
         this.gosho.setHandle("gosho");
 
-        when(this.userRepository.findByHandle(this.pesho.getHandle())).thenReturn(this.pesho);
-        when(this.userRepository.findByHandle(this.gosho.getHandle())).thenReturn(this.gosho);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.pesho.getHandle())).thenReturn(this.pesho);
+        when(this.userRepository.findByIsEnabledIsTrueAndHandle(this.gosho.getHandle())).thenReturn(this.gosho);
         when(this.userRepository.save(any())).thenAnswer(u -> u.getArgument(0));
     }
 
